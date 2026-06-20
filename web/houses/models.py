@@ -120,7 +120,7 @@ class CrawlTask(TimeStampedModel):
 class AnalysisResult(TimeStampedModel):
     city = models.ForeignKey(
         City,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         related_name="analysis_results",
         null=True,
         blank=True,
@@ -128,7 +128,7 @@ class AnalysisResult(TimeStampedModel):
     )
     district = models.ForeignKey(
         District,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         related_name="analysis_results",
         null=True,
         blank=True,
