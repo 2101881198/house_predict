@@ -17,8 +17,8 @@ class Command(BaseCommand):
         payloads = {
             "overview": build_overview(),
             "province": build_province_stats(),
-            "price_buckets": build_price_buckets(),
-            "room_types": build_room_type_distribution(),
+            "price_buckets": {"items": build_price_buckets()},
+            "room_types": {"items": build_room_type_distribution()},
         }
 
         for analysis_type, result_json in payloads.items():

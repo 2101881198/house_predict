@@ -13,7 +13,6 @@ def _round(value, digits=2):
 def build_overview():
     totals = House.objects.aggregate(
         total_houses=Count("id"),
-        city_count=Count("city", distinct=True),
         avg_total_price=Avg("total_price"),
         avg_unit_price=Avg("unit_price"),
     )
@@ -69,7 +68,7 @@ def build_overview():
 
     return {
         "total_houses": totals["total_houses"],
-        "city_count": totals["city_count"],
+        "city_count": City.objects.count(),
         "avg_total_price": _round(totals["avg_total_price"]),
         "avg_unit_price": _round(totals["avg_unit_price"]),
         "city_distribution": city_distribution,
@@ -83,7 +82,7 @@ def build_province_stats():
     cities = [
         {
             "id": row["city"],
-            "name": row["city__name"],
+            "city": row["city__name"],
             "count": row["count"],
             "avg_total_price": _round(row["avg_total_price"]),
             "avg_unit_price": _round(row["avg_unit_price"]),
@@ -112,8 +111,6 @@ def build_city_stats(city_id):
             "count": row["count"],
             "avg_total_price": _round(row["avg_total_price"]),
             "avg_unit_price": _round(row["avg_unit_price"]),
-            "max_total_price": _round(row["max_total_price"]),
-            "min_total_price": _round(row["min_total_price"]),
         }
         for row in House.objects.filter(city=city)
         .values("district", "district__name")
@@ -121,8 +118,6 @@ def build_city_stats(city_id):
             count=Count("id"),
             avg_total_price=Avg("total_price"),
             avg_unit_price=Avg("unit_price"),
-            max_total_price=Max("total_price"),
-            min_total_price=Min("total_price"),
         )
         .order_by("-count", "district__name")
     ]
@@ -142,10 +137,10 @@ def build_price_buckets():
         for index, (_, query) in enumerate(bucket_specs)
     }
     counts = House.objects.aggregate(**aggregate_fields)
-    return {
-        "labels": [label for label, _ in bucket_specs],
-        "counts": [counts[f"bucket_{index}"] for index in range(len(bucket_specs))],
-    }
+    return [
+        {"label": label, "count": counts[f"bucket_{index}"]}
+        for index, (label, _) in enumerate(bucket_specs)
+    ]
 
 
 def build_room_type_distribution():
