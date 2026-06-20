@@ -1,8 +1,37 @@
 from decimal import Decimal
 
+import pytest
+from django.core.management import call_command
 from django.utils import timezone
 
+from houses.models import House
 from houses.services.cleaning import clean_house_record
+from houses.management.commands import seed_demo_data
+
+
+def valid_record(**overrides):
+    record = {
+        "title": "Valid house",
+        "city": "Test City",
+        "district": "Test District",
+        "community": "Stable Community",
+        "total_price": "180",
+        "unit_price": "22500",
+        "area": "80",
+        "room_type": "2 bed",
+        "floor": "Middle",
+        "direction": "South",
+        "decoration": "Fine",
+        "build_year": "2015",
+        "address": "Stable Address",
+        "longitude": "117.123456",
+        "latitude": "36.654321",
+        "surrounding": "Metro",
+        "source_url": "demo://test/stable",
+        "crawl_time": "2026-06-20T10:30:00+08:00",
+    }
+    record.update(overrides)
+    return record
 
 
 def test_clean_house_record_normalizes_numbers_text_room_type_and_build_year():
@@ -80,3 +109,54 @@ def test_clean_house_record_normalizes_blank_source_url_to_none():
 
     assert cleaned is not None
     assert cleaned["source_url"] is None
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("total_price", float("inf")),
+        ("unit_price", Decimal("NaN")),
+        ("area", Decimal("Infinity")),
+        ("longitude", Decimal("NaN")),
+    ],
+)
+def test_clean_house_record_returns_none_for_non_finite_numeric_inputs(field, value):
+    assert clean_house_record(valid_record(**{field: value})) is None
+
+
+def test_clean_house_record_returns_none_for_invalid_explicit_crawl_time():
+    cleaned = clean_house_record(valid_record(crawl_time="not-a-timestamp"))
+
+    assert cleaned is None
+
+
+def test_build_house_lookup_for_missing_source_url_excludes_mutable_price_and_area():
+    first = {
+        "source_url": None,
+        "title": "Same listing",
+        "city": "Test City",
+        "district": "Test District",
+        "community": "Stable Community",
+        "address": "Stable Address",
+        "total_price": Decimal("180.00"),
+        "area": Decimal("80.00"),
+    }
+    changed_market_values = {
+        **first,
+        "total_price": Decimal("190.00"),
+        "area": Decimal("82.00"),
+    }
+
+    assert seed_demo_data.build_house_lookup(first) == seed_demo_data.build_house_lookup(
+        changed_market_values
+    )
+
+
+@pytest.mark.django_db
+def test_seed_demo_data_is_idempotent_across_two_runs():
+    call_command("seed_demo_data")
+    first_count = House.objects.count()
+
+    call_command("seed_demo_data")
+
+    assert House.objects.count() == first_count

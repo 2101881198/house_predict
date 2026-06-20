@@ -5,6 +5,18 @@ from houses.sample_data import DEMO_HOUSES
 from houses.services.cleaning import clean_house_record
 
 
+def build_house_lookup(record, city=None, district=None):
+    if record["source_url"]:
+        return {"source_url": record["source_url"]}
+    return {
+        "title": record["title"],
+        "city": city if city is not None else record["city"],
+        "district": district if district is not None else record["district"],
+        "community": record["community"],
+        "address": record["address"],
+    }
+
+
 class Command(BaseCommand):
     help = "Import bundled deterministic demo house data."
 
@@ -49,22 +61,11 @@ class Command(BaseCommand):
                     "crawl_time": record["crawl_time"],
                 }
 
-                if record["source_url"]:
-                    _, was_created = House.objects.update_or_create(
-                        source_url=record["source_url"],
-                        defaults=house_values,
-                    )
-                else:
-                    lookup = {
-                        "title": record["title"],
-                        "community": record["community"],
-                        "area": record["area"],
-                        "total_price": record["total_price"],
-                    }
-                    _, was_created = House.objects.update_or_create(
-                        **lookup,
-                        defaults=house_values,
-                    )
+                lookup = build_house_lookup(record, city=city, district=district)
+                _, was_created = House.objects.update_or_create(
+                    **lookup,
+                    defaults=house_values,
+                )
 
                 if was_created:
                     created += 1
