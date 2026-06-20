@@ -1,1 +1,38 @@
 .worktrees/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Test caches
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Model artifacts and generated data
+*.pkl
+*.pickle
+*.joblib
+*.h5
+*.hdf5
+*.onnx
+*.pt
+*.pth
+*.model
+*.cbm
+*.xgb
+*.lgb
+models/
+artifacts/
+
+# Local database files
+*.sqlite
+*.sqlite3
+*.db
+db.sqlite3
