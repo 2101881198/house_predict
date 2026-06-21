@@ -105,5 +105,13 @@ def test_build_province_stats_uses_city_key_for_city_name():
 
     stats = build_province_stats()
 
+    assert stats["cities"][0].keys() == {
+        "city",
+        "count",
+        "avg_total_price",
+        "avg_unit_price",
+        "max_total_price",
+        "min_total_price",
+    }
     assert stats["cities"][0]["city"] == "Test City"
     assert "name" not in stats["cities"][0]

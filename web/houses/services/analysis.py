@@ -81,7 +81,6 @@ def build_overview():
 def build_province_stats():
     cities = [
         {
-            "id": row["city"],
             "city": row["city__name"],
             "count": row["count"],
             "avg_total_price": _round(row["avg_total_price"]),
