@@ -68,7 +68,7 @@ def test_predict_price_empty_features_use_default_rule_estimate(
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("area", ["inf", "nan", "abc"])
+@pytest.mark.parametrize("area", ["inf", "nan", "abc", "1.7976931348623157e308"])
 @pytest.mark.parametrize("build_year", ["inf", "nan", "abc"])
 def test_predict_price_invalid_numeric_inputs_use_finite_defaults(
     settings, tmp_path, area, build_year

@@ -30,6 +30,9 @@ FEATURES = [
     "build_year",
 ]
 MODEL_FILE = "price_model.joblib"
+DEFAULT_AREA = 90.0
+MIN_AREA = 10.0
+MAX_AREA = 1000.0
 
 CATEGORICAL_FEATURES = [
     "city",
@@ -59,9 +62,9 @@ def _coerce_finite_float(value, default):
 
 
 def _coerce_area(value):
-    area = _coerce_finite_float(value, 90)
-    if area <= 0:
-        return 90.0
+    area = _coerce_finite_float(value, DEFAULT_AREA)
+    if area < MIN_AREA or area > MAX_AREA:
+        return DEFAULT_AREA
     return area
 
 
