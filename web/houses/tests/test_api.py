@@ -2,10 +2,11 @@ import json
 from decimal import Decimal
 
 import pytest
+from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.utils import timezone
 
-from houses.models import City, District, House
+from houses.models import City, CrawlTask, District, House, PredictResult
 
 
 @pytest.mark.django_db
@@ -48,3 +49,81 @@ def test_predict_api_returns_price(client, settings, tmp_path):
 
     assert response.status_code == 200
     assert "predicted_price" in response.json()["data"]
+
+
+@pytest.mark.django_db
+def test_houses_api_rejects_post(client):
+    response = client.post(reverse("houses:api_houses"))
+
+    assert response.status_code == 405
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("querystring", ["", "?city_id=abc"])
+def test_city_api_requires_valid_city_id(client, querystring):
+    response = client.get(f"{reverse('houses:api_city')}{querystring}")
+
+    assert response.status_code == 400
+    payload = response.json()
+    assert payload["code"] == 400
+
+
+@pytest.mark.django_db
+def test_predict_api_rejects_malformed_json_without_creating_result(
+    client, settings, tmp_path
+):
+    settings.MODEL_DIR = tmp_path / "missing-models"
+
+    response = client.post(
+        reverse("houses:api_predict_price"),
+        data="{bad json",
+        content_type="application/json",
+    )
+
+    assert response.status_code == 400
+    assert response.json()["code"] == 400
+    assert PredictResult.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_houses_api_rejects_nan_numeric_filter(client):
+    response = client.get(reverse("houses:api_houses"), {"min_price": "NaN"})
+
+    assert response.status_code == 400
+    assert response.json()["code"] == 400
+
+
+@pytest.mark.django_db
+def test_crawl_tasks_requires_staff_auth(client):
+    response = client.get(reverse("houses:api_crawl_tasks"))
+
+    assert response.status_code == 403
+    assert response.json()["code"] == 403
+
+
+@pytest.mark.django_db
+def test_staff_can_create_crawl_task_with_capped_page_count(client):
+    user = get_user_model().objects.create_user(
+        username="staff", password="secret", is_staff=True
+    )
+    client.force_login(user)
+
+    response = client.post(
+        reverse("houses:api_crawl_tasks"),
+        data=json.dumps(
+            {
+                "task_name": "crawl",
+                "target_city": "Jinan",
+                "page_count": 999,
+                "status": CrawlTask.Status.PENDING,
+            }
+        ),
+        content_type="application/json",
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["data"]["page_count"] == 100
+    task = CrawlTask.objects.get()
+    assert task.task_name == "crawl"
+    assert task.page_count == 100

@@ -74,6 +74,7 @@
       <strong data-field="model_name">-</strong>
     </div>
   </div>
+  <p class="muted" data-field="error" style="display: none;"></p>
   <p class="muted" data-field="note"></p>
 </section>
 {% endblock %}
@@ -84,19 +85,39 @@ document.getElementById("predict-form").addEventListener("submit", async (event)
   event.preventDefault();
   const form = event.currentTarget;
   const data = Object.fromEntries(new FormData(form).entries());
-  const response = await fetch("{% url 'houses:api_predict_price' %}", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify(data),
-  });
-  const payload = await response.json();
-  const result = payload.data || {};
   const panel = document.getElementById("predict-result");
+  const errorField = panel.querySelector('[data-field="error"]');
   panel.style.display = "block";
-  panel.querySelector('[data-field="predicted_price"]').textContent = result.predicted_price ?? "-";
-  panel.querySelector('[data-field="predicted_unit_price"]').textContent = result.predicted_unit_price ?? "-";
-  panel.querySelector('[data-field="model_name"]').textContent = result.model_name || "-";
-  panel.querySelector('[data-field="note"]').textContent = result.note || "";
+  try {
+    const response = await fetch("{% url 'houses:api_predict_price' %}", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(data),
+    });
+    let payload = {};
+    try {
+      payload = await response.json();
+    } catch (error) {
+      throw new Error("Invalid server response");
+    }
+    if (!response.ok || payload.code !== 200) {
+      throw new Error(payload.message || `Request failed (${response.status})`);
+    }
+    const result = payload.data || {};
+    errorField.style.display = "none";
+    errorField.textContent = "";
+    panel.querySelector('[data-field="predicted_price"]').textContent = result.predicted_price ?? "-";
+    panel.querySelector('[data-field="predicted_unit_price"]').textContent = result.predicted_unit_price ?? "-";
+    panel.querySelector('[data-field="model_name"]').textContent = result.model_name || "-";
+    panel.querySelector('[data-field="note"]').textContent = result.note || "";
+  } catch (error) {
+    panel.querySelector('[data-field="predicted_price"]').textContent = "-";
+    panel.querySelector('[data-field="predicted_unit_price"]').textContent = "-";
+    panel.querySelector('[data-field="model_name"]').textContent = "-";
+    panel.querySelector('[data-field="note"]').textContent = "";
+    errorField.style.display = "block";
+    errorField.textContent = error.message || "Prediction failed";
+  }
 });
 </script>
 {% endblock %}

@@ -1,11 +1,14 @@
 import json
 from decimal import Decimal, InvalidOperation
+from functools import wraps
 
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Avg
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_GET, require_http_methods
 
 from houses.models import City, CrawlTask, House, PredictResult
 from houses.services.analysis import (
@@ -35,27 +38,60 @@ def ok(data, message="success"):
     )
 
 
+def error_response(code, message, status):
+    return JsonResponse(
+        {"code": code, "message": message, "data": None},
+        status=status,
+        json_dumps_params={"ensure_ascii": False},
+    )
+
+
+def bad_request(message):
+    return error_response(400, message, 400)
+
+
+def forbidden(message="Forbidden"):
+    return error_response(403, message, 403)
+
+
+class BadRequest(ValueError):
+    pass
+
+
 def _number(value):
     if value is None:
         return None
     return float(value)
 
 
-def _decimal(value):
+def _decimal(value, field_name="value", strict=False):
     try:
         if value in ("", None):
             return None
-        return Decimal(str(value))
+        parsed = Decimal(str(value))
     except (InvalidOperation, TypeError, ValueError):
+        if strict:
+            raise BadRequest(f"{field_name} parameter is invalid")
         return None
+    if not parsed.is_finite():
+        if strict:
+            raise BadRequest(f"{field_name} parameter is invalid")
+        return None
+    return parsed
 
 
-def _positive_int(value, default, maximum=None):
+def _positive_int(value, default, maximum=None, field_name="value", strict=False):
     try:
+        if value in ("", None):
+            return default
         number = int(value)
     except (TypeError, ValueError):
+        if strict:
+            raise BadRequest(f"{field_name} parameter is invalid")
         return default
     if number < 1:
+        if strict:
+            raise BadRequest(f"{field_name} parameter is invalid")
         return default
     if maximum is not None:
         return min(number, maximum)
@@ -65,11 +101,46 @@ def _positive_int(value, default, maximum=None):
 def _json_body(request):
     try:
         if not request.body:
-            return {}
+            return {}, None
         data = json.loads(request.body.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError):
-        return {}
-    return data if isinstance(data, dict) else {}
+        return None, bad_request("Malformed JSON body")
+    if not isinstance(data, dict):
+        return None, bad_request("JSON body must be an object")
+    return data, None
+
+
+def _quantized_result_decimal(value, field_name):
+    try:
+        parsed = Decimal(str(value))
+    except (InvalidOperation, TypeError, ValueError):
+        raise BadRequest(f"{field_name} is invalid")
+    if not parsed.is_finite():
+        raise BadRequest(f"{field_name} is invalid")
+    try:
+        return parsed.quantize(Decimal("0.01"))
+    except InvalidOperation:
+        raise BadRequest(f"{field_name} is invalid")
+
+
+def _clean_text(data, field_name, default, max_length):
+    value = data.get(field_name, default)
+    if value in ("", None):
+        value = default
+    value = str(value)
+    if len(value) > max_length:
+        raise BadRequest(f"{field_name} is too long")
+    return value
+
+
+def staff_required_json(view_func):
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_authenticated or not request.user.is_staff:
+            return forbidden()
+        return view_func(request, *args, **kwargs)
+
+    return wrapper
 
 
 def _house_dict(house):
@@ -103,7 +174,7 @@ def _filter_by_lookup(queryset, field, value):
     return queryset.filter(**{f"{field}__name": value})
 
 
-def _filtered_houses(params):
+def _filtered_houses(params, strict=False):
     queryset = House.objects.select_related("city", "district")
     queryset = _filter_by_lookup(queryset, "city", params.get("city"))
     queryset = _filter_by_lookup(queryset, "district", params.get("district"))
@@ -116,19 +187,19 @@ def _filtered_houses(params):
     if decoration:
         queryset = queryset.filter(decoration=decoration)
 
-    min_price = _decimal(params.get("min_price"))
+    min_price = _decimal(params.get("min_price"), "min_price", strict=strict)
     if min_price is not None:
         queryset = queryset.filter(total_price__gte=min_price)
 
-    max_price = _decimal(params.get("max_price"))
+    max_price = _decimal(params.get("max_price"), "max_price", strict=strict)
     if max_price is not None:
         queryset = queryset.filter(total_price__lte=max_price)
 
-    min_area = _decimal(params.get("min_area"))
+    min_area = _decimal(params.get("min_area"), "min_area", strict=strict)
     if min_area is not None:
         queryset = queryset.filter(area__gte=min_area)
 
-    max_area = _decimal(params.get("max_area"))
+    max_area = _decimal(params.get("max_area"), "max_area", strict=strict)
     if max_area is not None:
         queryset = queryset.filter(area__lte=max_area)
 
@@ -218,8 +289,12 @@ def predict_page(request):
     return render(request, "houses/predict.html", {"cities": _cities_with_districts()})
 
 
+@require_GET
 def api_houses(request):
-    houses = _filtered_houses(request.GET)
+    try:
+        houses = _filtered_houses(request.GET, strict=True)
+    except BadRequest as exc:
+        return bad_request(str(exc))
     page_size = _positive_int(request.GET.get("page_size"), 10, maximum=100)
     page_number = _positive_int(request.GET.get("page"), 1)
     paginator = Paginator(houses, page_size)
@@ -234,6 +309,7 @@ def api_houses(request):
     )
 
 
+@require_GET
 def api_house_detail(request, house_id):
     house = get_object_or_404(
         House.objects.select_related("city", "district"), id=house_id
@@ -241,14 +317,17 @@ def api_house_detail(request, house_id):
     return ok(_house_dict(house))
 
 
+@require_GET
 def api_overview(request):
     return ok(build_overview())
 
 
+@require_GET
 def api_province(request):
     return ok(build_province_stats())
 
 
+@require_GET
 def api_city(request):
     city_id = _positive_int(request.GET.get("city_id"), None)
     if city_id is None:
@@ -276,12 +355,23 @@ def api_predict_price(request):
             status=405,
             json_dumps_params={"ensure_ascii": False},
         )
-    features = _json_body(request)
+    features, json_error = _json_body(request)
+    if json_error is not None:
+        return json_error
     result = predict_price(features)
+    try:
+        predicted_price = _quantized_result_decimal(
+            result.get("predicted_price"), "predicted_price"
+        )
+        predicted_unit_price = _quantized_result_decimal(
+            result.get("predicted_unit_price"), "predicted_unit_price"
+        )
+    except BadRequest as exc:
+        return bad_request(str(exc))
     PredictResult.objects.create(
         input_features=features,
-        predicted_price=Decimal(str(result.get("predicted_price", 0))),
-        predicted_unit_price=Decimal(str(result.get("predicted_unit_price", 0))),
+        predicted_price=predicted_price,
+        predicted_unit_price=predicted_unit_price,
         model_name=result.get("model_name", ""),
     )
     return ok(result)
@@ -304,7 +394,9 @@ def _crawl_task_dict(task):
     }
 
 
-@csrf_exempt
+@staff_required_json
+@login_required
+@require_http_methods(["GET", "POST"])
 def api_crawl_tasks(request):
     if request.method == "GET":
         tasks = CrawlTask.objects.order_by("-created_at")[:100]
@@ -317,12 +409,30 @@ def api_crawl_tasks(request):
             json_dumps_params={"ensure_ascii": False},
         )
 
-    data = _json_body(request)
+    data, json_error = _json_body(request)
+    if json_error is not None:
+        return json_error
+    try:
+        _clean_text(data, "task_name", "house crawl task", 100)
+        _clean_text(data, "target_city", "", 50)
+        _clean_text(data, "target_district", "", 50)
+        status = str(data.get("status") or CrawlTask.Status.PENDING)
+        if status not in CrawlTask.Status.values:
+            raise BadRequest("status is invalid")
+        page_count = _positive_int(
+            data.get("page_count"),
+            1,
+            maximum=100,
+            field_name="page_count",
+            strict=True,
+        )
+    except BadRequest as exc:
+        return bad_request(str(exc))
     task = CrawlTask.objects.create(
         task_name=str(data.get("task_name") or "房源采集任务"),
         target_city=str(data.get("target_city") or ""),
         target_district=str(data.get("target_district") or ""),
-        page_count=_positive_int(data.get("page_count"), 1),
-        status=str(data.get("status") or CrawlTask.Status.PENDING),
+        page_count=page_count,
+        status=status,
     )
     return ok(_crawl_task_dict(task), message="created")
