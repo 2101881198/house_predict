@@ -1,0 +1,48 @@
+{% extends "houses/base.html" %}
+{% load static %}
+
+{% block title %}全省分析{% endblock %}
+
+{% block content %}
+{{ stats|json_script:"province-stats-data" }}
+
+<section class="panel">
+  <h1>全省城市房源分析</h1>
+  <div id="province-chart" class="chart"></div>
+</section>
+
+<section class="panel" style="margin-top: 16px;">
+  <h2>城市明细</h2>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>城市</th>
+        <th>房源数</th>
+        <th>平均总价</th>
+        <th>平均单价</th>
+        <th>最高总价</th>
+        <th>最低总价</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in stats.cities %}
+        <tr>
+          <td>{{ row.city }}</td>
+          <td>{{ row.count }}</td>
+          <td>{{ row.avg_total_price }} 万元</td>
+          <td>{{ row.avg_unit_price }} 元/㎡</td>
+          <td>{{ row.max_total_price }} 万元</td>
+          <td>{{ row.min_total_price }} 万元</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="6" class="muted">暂无数据</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'houses/js/charts.js' %}"></script>
+<script>renderProvinceCharts();</script>
+{% endblock %}

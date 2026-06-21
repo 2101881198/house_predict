@@ -1,0 +1,91 @@
+{% extends "houses/base.html" %}
+
+{% block title %}{{ house.title }}{% endblock %}
+
+{% block content %}
+<section class="panel">
+  <h1>{{ house.title }}</h1>
+  <div class="grid stats-grid">
+    <div>
+      <div class="muted">城市</div>
+      <strong>{{ house.city.name }}</strong>
+    </div>
+    <div>
+      <div class="muted">区域</div>
+      <strong>{{ house.district.name }}</strong>
+    </div>
+    <div>
+      <div class="muted">总价</div>
+      <strong>{{ house.total_price }} 万元</strong>
+    </div>
+    <div>
+      <div class="muted">单价</div>
+      <strong>{{ house.unit_price }} 元/㎡</strong>
+    </div>
+    <div>
+      <div class="muted">面积</div>
+      <strong>{{ house.area }} ㎡</strong>
+    </div>
+    <div>
+      <div class="muted">户型</div>
+      <strong>{{ house.room_type }}</strong>
+    </div>
+  </div>
+</section>
+
+<section class="grid" style="grid-template-columns: minmax(0, 1.4fr) minmax(260px, .6fr); margin-top: 16px;">
+  <div class="panel">
+    <h2>房源信息</h2>
+    <table class="table">
+      <tbody>
+        <tr><th>小区</th><td>{{ house.community|default:"-" }}</td></tr>
+        <tr><th>楼层</th><td>{{ house.floor|default:"-" }}</td></tr>
+        <tr><th>朝向</th><td>{{ house.direction|default:"-" }}</td></tr>
+        <tr><th>装修</th><td>{{ house.decoration|default:"-" }}</td></tr>
+        <tr><th>建造年份</th><td>{{ house.build_year|default:"-" }}</td></tr>
+        <tr><th>地址</th><td>{{ house.address|default:"-" }}</td></tr>
+        <tr><th>经纬度</th><td>{{ house.longitude|default:"-" }} / {{ house.latitude|default:"-" }}</td></tr>
+        <tr><th>采集时间</th><td>{{ house.crawl_time }}</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="panel">
+    <h2>区域均价</h2>
+    <div class="metric">{{ district_avg_unit_price|floatformat:2 }}</div>
+    <div class="muted">元/㎡</div>
+  </div>
+</section>
+
+<section class="panel" style="margin-top: 16px;">
+  <h2>周边配套</h2>
+  <p>{{ house.surrounding|default:"-" }}</p>
+</section>
+
+<section class="panel" style="margin-top: 16px;">
+  <h2>同区域房源</h2>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>标题</th>
+        <th>总价</th>
+        <th>单价</th>
+        <th>面积</th>
+        <th>详情</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in similar_houses %}
+        <tr>
+          <td>{{ item.title }}</td>
+          <td>{{ item.total_price }} 万元</td>
+          <td>{{ item.unit_price }} 元/㎡</td>
+          <td>{{ item.area }} ㎡</td>
+          <td><a href="{% url 'houses:house_detail' item.id %}">查看</a></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5" class="muted">暂无数据</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

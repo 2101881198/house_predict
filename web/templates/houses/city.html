@@ -1,0 +1,46 @@
+{% extends "houses/base.html" %}
+{% load static %}
+
+{% block title %}{{ stats.city.name }}房源分析{% endblock %}
+
+{% block content %}
+{{ stats|json_script:"city-stats-data" }}
+
+<section class="panel">
+  <h1>{{ stats.city.name }}区域分析</h1>
+  <div id="city-detail-chart" class="chart"></div>
+</section>
+
+<section class="panel" style="margin-top: 16px;">
+  <h2>区域明细</h2>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>区域</th>
+        <th>房源数</th>
+        <th>平均总价</th>
+        <th>平均单价</th>
+        <th>房源</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in stats.districts %}
+        <tr>
+          <td>{{ row.name }}</td>
+          <td>{{ row.count }}</td>
+          <td>{{ row.avg_total_price }} 万元</td>
+          <td>{{ row.avg_unit_price }} 元/㎡</td>
+          <td><a href="{% url 'houses:house_list' %}?city={{ stats.city.id }}&district={{ row.id }}">查看</a></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5" class="muted">暂无数据</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'houses/js/charts.js' %}"></script>
+<script>renderCityCharts();</script>
+{% endblock %}
