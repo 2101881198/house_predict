@@ -1,3 +1,6 @@
+import logging
+import math
+from collections.abc import Mapping
 from pathlib import Path
 
 import joblib
@@ -13,6 +16,8 @@ from sklearn.preprocessing import OneHotEncoder
 
 from houses.models import House
 
+
+logger = logging.getLogger(__name__)
 
 FEATURES = [
     "city",
@@ -41,34 +46,42 @@ def _model_path():
     return Path(settings.MODEL_DIR) / MODEL_FILE
 
 
-def _coerce_float(value, default):
+def _coerce_finite_float(value, default):
     try:
         if value in ("", None):
             return float(default)
-        return float(value)
-    except (TypeError, ValueError):
+        coerced = float(value)
+    except (TypeError, ValueError, OverflowError):
         return float(default)
+    if not math.isfinite(coerced):
+        return float(default)
+    return coerced
 
 
-def _coerce_int(value, default):
-    try:
-        if value in ("", None):
-            return int(default)
-        return int(float(value))
-    except (TypeError, ValueError):
-        return int(default)
+def _coerce_area(value):
+    area = _coerce_finite_float(value, 90)
+    if area <= 0:
+        return 90.0
+    return area
+
+
+def _coerce_build_year(value):
+    build_year = _coerce_finite_float(value, 2010)
+    return int(build_year)
 
 
 def _normalize_features(features):
+    if not isinstance(features, Mapping):
+        features = {}
     return {
         "city": str(features.get("city") or ""),
         "district": str(features.get("district") or ""),
-        "area": _coerce_float(features.get("area"), 90),
+        "area": _coerce_area(features.get("area")),
         "room_type": str(features.get("room_type") or ""),
         "floor": str(features.get("floor") or ""),
         "direction": str(features.get("direction") or ""),
         "decoration": str(features.get("decoration") or ""),
-        "build_year": _coerce_int(features.get("build_year"), 2010),
+        "build_year": _coerce_build_year(features.get("build_year")),
     }
 
 
@@ -159,28 +172,34 @@ def _average_unit_price(features):
                     "value"
                 ]
                 if district_average is not None:
-                    return float(district_average)
+                    unit_price = _coerce_finite_float(district_average, 10000)
+                    if unit_price > 0:
+                        return unit_price
 
             city_average = city_queryset.aggregate(value=Avg("unit_price"))["value"]
             if city_average is not None:
-                return float(city_average)
+                unit_price = _coerce_finite_float(city_average, 10000)
+                if unit_price > 0:
+                    return unit_price
 
     all_average = queryset.aggregate(value=Avg("unit_price"))["value"]
     if all_average is not None:
-        return float(all_average)
+        unit_price = _coerce_finite_float(all_average, 10000)
+        if unit_price > 0:
+            return unit_price
     return 10000.0
 
 
-def _rule_predict(features):
+def _rule_predict(features, note="模型文件不存在，使用区域均价估算"):
     normalized = _normalize_features(features)
-    area = normalized["area"] if normalized["area"] > 0 else 90.0
+    area = normalized["area"]
     unit_price = _average_unit_price(normalized)
     predicted_price = round(unit_price * area / 10000, 2)
     return {
         "predicted_price": predicted_price,
         "predicted_unit_price": round(unit_price, 2),
         "model_name": "规则估算",
-        "note": "模型文件不存在，使用区域均价估算",
+        "note": note,
     }
 
 
@@ -190,10 +209,36 @@ def predict_price(features):
     if not model_path.exists():
         return _rule_predict(normalized)
 
-    model = joblib.load(model_path)
+    try:
+        model = joblib.load(model_path)
+    except Exception:
+        logger.exception("Failed to load trained price model from %s", model_path)
+        return _rule_predict(
+            normalized,
+            note="已训练模型不可用 (trained model unavailable)，使用规则估算",
+        )
+
     dataframe = pd.DataFrame([normalized], columns=FEATURES)
-    predicted_price = round(float(model.predict(dataframe)[0]), 2)
-    area = normalized["area"] if normalized["area"] > 0 else 90.0
+    try:
+        predicted_value = float(model.predict(dataframe)[0])
+    except Exception:
+        logger.exception("Failed to predict price with trained model %s", model_path)
+        return _rule_predict(
+            normalized,
+            note="已训练模型不可用 (trained model unavailable)，使用规则估算",
+        )
+    if not math.isfinite(predicted_value):
+        logger.error(
+            "Trained price model returned a non-finite prediction: %s",
+            predicted_value,
+        )
+        return _rule_predict(
+            normalized,
+            note="已训练模型不可用 (trained model unavailable)，使用规则估算",
+        )
+
+    predicted_price = round(predicted_value, 2)
+    area = normalized["area"]
     predicted_unit_price = round(predicted_price * 10000 / area, 2)
     return {
         "predicted_price": predicted_price,
