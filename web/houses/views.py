@@ -435,4 +435,4 @@ def api_crawl_tasks(request):
         page_count=page_count,
         status=status,
     )
-    return ok(_crawl_task_dict(task), message="created")
+    return ok({"id": task.id, "status": task.status})

@@ -123,7 +123,9 @@ def test_staff_can_create_crawl_task_with_capped_page_count(client):
 
     assert response.status_code == 200
     payload = response.json()
-    assert payload["data"]["page_count"] == 100
+    assert set(payload["data"]) == {"id", "status"}
+    assert payload["data"]["status"] == CrawlTask.Status.PENDING
     task = CrawlTask.objects.get()
+    assert payload["data"]["id"] == task.id
     assert task.task_name == "crawl"
     assert task.page_count == 100
