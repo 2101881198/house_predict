@@ -1,8 +1,9 @@
 from django.core.management import call_command
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 
 from houses.models import CrawlTask, House
+from houses.sample_data import DEMO_HOUSES
 
 
 class Command(BaseCommand):
@@ -28,19 +29,33 @@ class Command(BaseCommand):
         )
 
         before_count = House.objects.count()
-        call_command("seed_demo_data")
+        try:
+            call_command("seed_demo_data")
+        except Exception as exc:
+            task.status = "failed"
+            task.fail_count = 1
+            task.finished_at = timezone.now()
+            task.message = f"Demo crawler failed: {exc}"
+            task.save()
+            raise CommandError(f"Demo crawler failed: {exc}") from exc
+
         after_count = House.objects.count()
+        new_count = max(after_count - before_count, 0)
+        processed_count = len(DEMO_HOUSES)
 
         task.status = "success"
-        task.success_count = max(after_count - before_count, 0)
+        task.success_count = processed_count
         task.fail_count = 0
         task.finished_at = timezone.now()
-        task.message = "示例采集器已导入内置山东省房源数据。"
+        task.message = (
+            f"Processed {processed_count} bundled demo houses; "
+            f"imported {new_count} new houses."
+        )
         task.save()
 
         self.stdout.write(
             self.style.SUCCESS(
                 f"Demo crawler task {task.id} finished with "
-                f"{task.success_count} new houses."
+                f"{task.success_count} demo houses ({new_count} new houses)."
             )
         )
