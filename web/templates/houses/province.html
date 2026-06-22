@@ -5,10 +5,27 @@
 
 {% block content %}
 {{ stats|json_script:"province-stats-data" }}
+{{ price_buckets|json_script:"province-price-buckets-data" }}
+{{ area_buckets|json_script:"province-area-buckets-data" }}
+{{ room_types|json_script:"province-room-types-data" }}
 
-<section class="panel">
-  <h1>全省城市房源分析</h1>
-  <div id="province-chart" class="chart"></div>
+<section class="grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
+  <div class="panel">
+    <h1>全省城市房源分析</h1>
+    <div id="province-chart" class="chart"></div>
+  </div>
+  <div class="panel">
+    <h2>总价区间分布</h2>
+    <div id="province-price-chart" class="chart"></div>
+  </div>
+  <div class="panel">
+    <h2>面积区间分布</h2>
+    <div id="province-area-chart" class="chart"></div>
+  </div>
+  <div class="panel">
+    <h2>户型结构</h2>
+    <div id="province-room-chart" class="chart"></div>
+  </div>
 </section>
 
 <section class="panel" style="margin-top: 16px;">

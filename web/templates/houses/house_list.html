@@ -50,6 +50,14 @@
       <input type="number" step="0.01" name="max_price" value="{{ request.GET.max_price }}">
     </label>
     <label>
+      最小面积
+      <input type="number" step="0.01" name="min_area" value="{{ request.GET.min_area }}">
+    </label>
+    <label>
+      最大面积
+      <input type="number" step="0.01" name="max_area" value="{{ request.GET.max_area }}">
+    </label>
+    <label>
       排序
       <select name="sort">
         <option value="-crawl_time" {% if request.GET.sort == "-crawl_time" %}selected{% endif %}>最新</option>

@@ -149,3 +149,60 @@ def build_room_type_distribution():
         .annotate(count=Count("id"))
         .order_by("-count", "room_type")
     ]
+
+
+def _scoped_houses(city_id=None):
+    queryset = House.objects.all()
+    if city_id:
+        queryset = queryset.filter(city_id=city_id)
+    return queryset
+
+
+def build_price_buckets(city_id=None):
+    queryset = _scoped_houses(city_id)
+    bucket_specs = [
+        ("100万以下", Q(total_price__lt=100)),
+        ("100-150万", Q(total_price__gte=100, total_price__lt=150)),
+        ("150-200万", Q(total_price__gte=150, total_price__lt=200)),
+        ("200-300万", Q(total_price__gte=200, total_price__lt=300)),
+        ("300万以上", Q(total_price__gte=300)),
+    ]
+    aggregate_fields = {
+        f"bucket_{index}": Count("id", filter=query)
+        for index, (_, query) in enumerate(bucket_specs)
+    }
+    counts = queryset.aggregate(**aggregate_fields)
+    return [
+        {"label": label, "count": counts[f"bucket_{index}"]}
+        for index, (label, _) in enumerate(bucket_specs)
+    ]
+
+
+def build_area_buckets(city_id=None):
+    queryset = _scoped_houses(city_id)
+    bucket_specs = [
+        ("60㎡以下", Q(area__lt=60)),
+        ("60-90㎡", Q(area__gte=60, area__lt=90)),
+        ("90-120㎡", Q(area__gte=90, area__lt=120)),
+        ("120-150㎡", Q(area__gte=120, area__lt=150)),
+        ("150㎡以上", Q(area__gte=150)),
+    ]
+    aggregate_fields = {
+        f"bucket_{index}": Count("id", filter=query)
+        for index, (_, query) in enumerate(bucket_specs)
+    }
+    counts = queryset.aggregate(**aggregate_fields)
+    return [
+        {"label": label, "count": counts[f"bucket_{index}"]}
+        for index, (label, _) in enumerate(bucket_specs)
+    ]
+
+
+def build_room_type_distribution(city_id=None):
+    queryset = _scoped_houses(city_id)
+    return [
+        {"room_type": row["room_type"], "count": row["count"]}
+        for row in queryset.values("room_type")
+        .annotate(count=Count("id"))
+        .order_by("-count", "room_type")
+    ]

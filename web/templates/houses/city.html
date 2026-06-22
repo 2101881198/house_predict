@@ -5,10 +5,27 @@
 
 {% block content %}
 {{ stats|json_script:"city-stats-data" }}
+{{ price_buckets|json_script:"city-price-buckets-data" }}
+{{ area_buckets|json_script:"city-area-buckets-data" }}
+{{ room_types|json_script:"city-room-types-data" }}
 
-<section class="panel">
-  <h1>{{ stats.city.name }}区域分析</h1>
-  <div id="city-detail-chart" class="chart"></div>
+<section class="grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
+  <div class="panel">
+    <h1>{{ stats.city.name }}区域分析</h1>
+    <div id="city-detail-chart" class="chart"></div>
+  </div>
+  <div class="panel">
+    <h2>总价区间分布</h2>
+    <div id="city-price-chart" class="chart"></div>
+  </div>
+  <div class="panel">
+    <h2>面积区间分布</h2>
+    <div id="city-area-chart" class="chart"></div>
+  </div>
+  <div class="panel">
+    <h2>户型结构</h2>
+    <div id="city-room-chart" class="chart"></div>
+  </div>
 </section>
 
 <section class="panel" style="margin-top: 16px;">

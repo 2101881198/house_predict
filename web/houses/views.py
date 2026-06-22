@@ -12,10 +12,12 @@ from django.views.decorators.http import require_GET, require_http_methods
 
 from houses.models import City, CrawlTask, House, PredictResult
 from houses.services.analysis import (
+    build_area_buckets,
     build_city_stats,
     build_overview,
     build_price_buckets,
     build_province_stats,
+    build_room_type_distribution,
 )
 from houses.services.prediction import predict_price
 
@@ -234,12 +236,30 @@ def dashboard(request):
 
 
 def province(request):
-    return render(request, "houses/province.html", {"stats": build_province_stats()})
+    return render(
+        request,
+        "houses/province.html",
+        {
+            "stats": build_province_stats(),
+            "price_buckets": build_price_buckets(),
+            "area_buckets": build_area_buckets(),
+            "room_types": build_room_type_distribution(),
+        },
+    )
 
 
 def city_detail(request, city_id):
     get_object_or_404(City, id=city_id)
-    return render(request, "houses/city.html", {"stats": build_city_stats(city_id)})
+    return render(
+        request,
+        "houses/city.html",
+        {
+            "stats": build_city_stats(city_id),
+            "price_buckets": build_price_buckets(city_id),
+            "area_buckets": build_area_buckets(city_id),
+            "room_types": build_room_type_distribution(city_id),
+        },
+    )
 
 
 def house_list(request):
