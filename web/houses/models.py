@@ -3,6 +3,7 @@ from django.utils import timezone
 
 
 class TimeStampedModel(models.Model):
+    # 公共抽象基类：继承它的表都会自动拥有创建时间和更新时间。
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -11,6 +12,7 @@ class TimeStampedModel(models.Model):
 
 
 class City(TimeStampedModel):
+    # 城市表：例如济南、青岛。房源会通过外键关联到城市。
     name = models.CharField("城市", max_length=50, unique=True)
     province = models.CharField("省份", max_length=50, default="山东省")
 
@@ -24,6 +26,7 @@ class City(TimeStampedModel):
 
 
 class District(TimeStampedModel):
+    # 区县表：一个城市下面可以有多个区县，例如济南下面的历下区。
     city = models.ForeignKey(
         City,
         on_delete=models.CASCADE,
@@ -43,6 +46,7 @@ class District(TimeStampedModel):
 
 
 class House(TimeStampedModel):
+    # 房源主表：列表、详情、统计分析、价格预测都主要围绕这张表工作。
     title = models.CharField("标题", max_length=200)
     city = models.ForeignKey(
         City,
@@ -73,6 +77,7 @@ class House(TimeStampedModel):
     crawl_time = models.DateTimeField("爬取时间", db_index=True)
 
     class Meta:
+        # 默认展示最新采集的房源；常查的字段建索引，让筛选/排序更快。
         ordering = ["-crawl_time", "-id"]
         indexes = [
             models.Index(fields=["city", "district"], name="house_city_district_idx"),
@@ -86,6 +91,7 @@ class House(TimeStampedModel):
 
 
 class CrawlTask(TimeStampedModel):
+    # 爬取任务表：记录一次房源采集任务的状态、成功数、失败数等。
     class Status(models.TextChoices):
         PENDING = "pending", "待执行"
         RUNNING = "running", "执行中"
@@ -118,6 +124,7 @@ class CrawlTask(TimeStampedModel):
 
 
 class AnalysisResult(TimeStampedModel):
+    # 分析结果表：把统计结果存成 JSON，方便后台查看或以后直接复用。
     city = models.ForeignKey(
         City,
         on_delete=models.CASCADE,
@@ -148,6 +155,7 @@ class AnalysisResult(TimeStampedModel):
 
 
 class PredictResult(TimeStampedModel):
+    # 预测记录表：每次调用房价预测接口后，把输入和预测结果保存下来。
     house = models.ForeignKey(
         House,
         on_delete=models.SET_NULL,

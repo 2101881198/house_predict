@@ -1,0 +1,258 @@
+{
+  "captured_at": "2026-06-24 Asia/Shanghai",
+  "source_url": "https://www.eduplus.net/course/course/78ebedea43e8420da367c606bbe0328a/PracticePage/42e496e5177a4d43adb74f460f2e3ffd",
+  "course": {
+    "name": "????????",
+    "term": "2025-2026????",
+    "date_range": "2026-05-25 ? 2026-07-01",
+    "teacher": "???",
+    "class": "2025?????????1?",
+    "class_code": "D0Y0NB"
+  },
+  "project_api_response": {
+    "code": 2000000,
+    "data": [
+      {
+        "createAt": 1779784091845,
+        "updateAt": 1779784691657,
+        "createBy": "2884cfc43bd34e86867ffde688266f16",
+        "updateBy": "2884cfc43bd34e86867ffde688266f16",
+        "id": "e1575f04718641d884d9bea62e08f254",
+        "traincaseId": "cbb6e39951af4189976fadaa0d2f1ed9",
+        "source": "Template",
+        "sourceTitle": "模板库",
+        "courseId": "78ebedea43e8420da367c606bbe0328a",
+        "practiceId": "42e496e5177a4d43adb74f460f2e3ffd",
+        "name": "基于Python的智慧房源探索平台",
+        "describe": "<h3>项目简介</h3><p>&nbsp; &nbsp; &nbsp; &nbsp; 房地产市场是关乎国计民生的重要经济产业，随着经济的飞快发展，可用于开发的房产越来越少，更多的人开始把目光转移到二手房市场，但目前市面上的二手房网站数量繁多，数据繁杂，用户花费大量的时间却找不到有用的信息。近年来，随着城市化进程的加速，一线和部分二线城市的房价稳步上涨，但增速逐渐趋于平稳。与此同时，三四线城市的二手房市场也逐渐升温，吸引了更多投资者的目光。</p><p>&nbsp; &nbsp; &nbsp; &nbsp;项目是基于Python来构建智慧房源探索平台，通过采集二手房网站数据，对整体的房价进行分析和预测，并构建可视化探索平台，在购房、租房、投资和市场了解等方面具有重要用途，可以能够帮助用户快速了解各城市与各地区的房源及价格情况，找到符合自己需求的房源，也有助于做出更明智的购房或租房决策。还能够帮助房地产投资者寻找潜在的投资机会，找到潜在投资热点地区和价格合理的房源。同时更能够帮助用户了解房屋所在地的周边环境和配套设施，例如学校、医院、交通便利程度等，这有助于评估房屋的便利性和生活质量。</p><p>&nbsp; &nbsp; &nbsp; &nbsp; 通过本项目强化学习，让学生具有企业级项目开发管理体验，根据之前学习的课程知识，要求学生采用面向对象的分析与设计方法，建立该项目的原型，设计合理的数据结构与算法，在知识、能力和素质等方面得到提升和锻炼。</p><h3>项目特色</h3><ul><li><p>面向房地产行业</p></li><li><p>项目涉及的知识面广，采用分级建设模式，从数据采集、清洗、分析、挖掘、可视化等多个环节，需要综合运用数据处理和分析算法、大数据处理技术、可视化工具等技术来实现对数据的全面挖掘和可视化展示，符合企业实际需求</p></li><li><p>整个项目结合基础理论与实际应用，由基础原理开始，逐步深入进阶应用</p></li><li><p>将教学知识点融入项目原型，以项目为原点进行教学设计改造，覆盖全知识点实践教学</p></li><li><p>可扩展功能较多，学生可以按兴趣添加新的功能，可以培养学生的创新性思维</p></li></ul><h3>项目开发技术</h3><p><span style=\"color: rgb(102, 102, 102)\">&nbsp; &nbsp; 项目是通过采集二手房网站数据，存储到MySQL数据库中，然后通过Python读取数据库数据，对房价数据进行清洗和分析，构建房价预测模型，对房价进行预测。再通过Django构建可视化探索平台，建立</span>智慧探索平台首页大屏、山东省房源情况、各城市房源情况以及各地区房源情况，能够详细展示各城市与各地区的房源及价格情况、各房源的详细信息以及房屋所在地的周边环境和配套设施，<span style=\"color: rgb(102, 102, 102)\">在购房、租房、投资和市场了解等方面具有重要用途。</span></p><p><span style=\"color: rgb(51, 51, 51)\">&nbsp; &nbsp; 项目</span>主要涉及的技术和知识点如下：</p><ul><li><p>Python、MySQL、HTML、JavaScript；</p></li><li><p>数据采集与清洗：Request、XPath、Scrapy框架、Scrapy-Redis分布式爬虫、Pandas、PyMySQL；</p></li><li><p>数据分析与挖掘：Numpy、Matplotlib、Seaborn、Python机器学习库Sklearn；</p></li><li><p>数据可视化展示：Django Web 程序开发、ECharts可视化组件、百度地图。</p></li></ul><h3>开发工具及环境</h3><figure dir=\"auto\"><table style=\"min-width: 75px\"><colgroup><col style=\"min-width: 25px\"><col style=\"min-width: 25px\"><col style=\"min-width: 25px\"></colgroup><tbody><tr><th colspan=\"1\" rowspan=\"1\" style=\"width: 120px\"><p>&nbsp;</p></th><th colspan=\"1\" rowspan=\"1\"><p style=\"text-align: center\">名称</p></th><th colspan=\"1\" rowspan=\"1\"><p style=\"text-align: center\">说明</p></th></tr><tr><td colspan=\"1\" rowspan=\"1\"><p>系统环境</p></td><td colspan=\"1\" rowspan=\"1\"><p>Linux操作系统</p></td><td colspan=\"1\" rowspan=\"1\"><p>CentOS 7及以上的版本</p></td></tr><tr><td colspan=\"1\" rowspan=\"1\"><p>开发环境</p></td><td colspan=\"1\" rowspan=\"1\"><p>Anaconda、PyCharm、MySQL、Redis</p></td><td colspan=\"1\" rowspan=\"1\"><p>开发环境需要安装配置Anaconda和PyCharm环境，还需要安装MySQL数据库存储数据，安装Redis实现分布式爬虫</p></td></tr><tr><td colspan=\"1\" rowspan=\"1\"><p>运行环境</p></td><td colspan=\"1\" rowspan=\"1\"><p>Python</p></td><td colspan=\"1\" rowspan=\"1\"><p>项目部署运行环境需要Python及相应的库</p></td></tr><tr><td colspan=\"1\" rowspan=\"1\"><p>开发工具</p></td><td colspan=\"1\" rowspan=\"1\"><p>Anaconda、PyCharm，Eclipse</p></td><td colspan=\"1\" rowspan=\"1\"><p>使用Anaconda编写Python代码实现爬虫、数据清洗和分析挖掘，使用PyCharm编写Python代码实现分布式爬虫以及可视化项目的搭建</p></td></tr><tr><td colspan=\"1\" rowspan=\"1\"><p>开发语言</p></td><td colspan=\"1\" rowspan=\"1\"><p>Python、JavaScript、HTML,SprintBoot, Vue.js</p></td><td colspan=\"1\" rowspan=\"1\"><p>后端涉及的开发语言包括：Python；前端涉及的开发语言包括：Python、JavaScript、HTML、SprintBoot,、Vue.js</p></td></tr></tbody></table></figure><h3>项目效果展示</h3><div style=\"text-align:left\"><img src=\"https://tecs-prod-static.obs.cn-north-1.myhuaweicloud.com:443/cbb6e39951af4189976fadaa0d2f1ed9%2Frichtext%2Fimage%2F20231013%2F4ba891b1d1e6431c83cd23486bf86620.png\" data-align=\"left\"></div><p style=\"text-align: center\">图1 智慧探索平台首页大屏展示</p><div style=\"text-align:left\"><img src=\"https://tecs-prod-static.obs.cn-north-1.myhuaweicloud.com/cbb6e39951af4189976fadaa0d2f1ed9%2Frichtext%2Fimage%2F20230922%2F0e944a3c21dd45228ba82409a71f2b21.png\" data-align=\"left\"></div><p style=\"text-align: center\">图2&nbsp; 山东省房源情况展示</p><div style=\"text-align:left\"><img src=\"https://tecs-prod-static.obs.cn-north-1.myhuaweicloud.com/cbb6e39951af4189976fadaa0d2f1ed9%2Frichtext%2Fimage%2F20230922%2F6e3cb88a9c994ba1b62d2ac391ff15e3.png\" data-align=\"left\"></div><p style=\"text-align: center\">图3 各城市房源情况展示</p><div style=\"text-align:left\"><img src=\"https://tecs-prod-static.obs.cn-north-1.myhuaweicloud.com:443/cbb6e39951af4189976fadaa0d2f1ed9%2Frichtext%2Fimage%2F20231013%2Fbe8afb5a6efb450cb8afb7bb90fbb421.png\" data-align=\"left\"></div><p style=\"text-align: center\">图4 各地区房源列表展示</p><div style=\"text-align:left\"><img src=\"https://tecs-prod-static.obs.cn-north-1.myhuaweicloud.com/cbb6e39951af4189976fadaa0d2f1ed9%2Frichtext%2Fimage%2F20230922%2F56da0464f06f4296a2c4c75061794b9c.png\" data-align=\"left\"></div><p style=\"text-align: center\">图5 各房源详细信息展示</p><h3>项目技术架构</h3><div style=\"text-align:left\"><img src=\"https://tecs-prod-static.obs.cn-north-1.myhuaweicloud.com:443/cbb6e39951af4189976fadaa0d2f1ed9%2Frichtext%2Fimage%2F20231013%2F6569db77591f411c9715d2b48887df60.png\" data-align=\"left\"></div><p>&nbsp;</p><p style=\"text-align: center\">图6&nbsp; 项目技术架构图</p>",
+        "status": "Yes",
+        "statusTitle": "是",
+        "enabledCopyGuide": 1,
+        "sequence": 0.0,
+        "createName": "刘红俊",
+        "teamSelectedNum": 34
+      }
+    ],
+    "success": true,
+    "tracer": "5c426d9b25f939777e864df781316b8c",
+    "message": "OK",
+    "status": 200
+  },
+  "project": {
+    "createAt": 1779784091845,
+    "updateAt": 1779784691657,
+    "createBy": "2884cfc43bd34e86867ffde688266f16",
+    "updateBy": "2884cfc43bd34e86867ffde688266f16",
+    "id": "e1575f04718641d884d9bea62e08f254",
+    "traincaseId": "cbb6e39951af4189976fadaa0d2f1ed9",
+    "source": "Template",
+    "sourceTitle": "模板库",
+    "courseId": "78ebedea43e8420da367c606bbe0328a",
+    "practiceId": "42e496e5177a4d43adb74f460f2e3ffd",
+    "name": "基于Python的智慧房源探索平台",
+    "describe": "<h3>项目简介</h3><p>&nbsp; &nbsp; &nbsp; &nbsp; 房地产市场是关乎国计民生的重要经济产业，随着经济的飞快发展，可用于开发的房产越来越少，更多的人开始把目光转移到二手房市场，但目前市面上的二手房网站数量繁多，数据繁杂，用户花费大量的时间却找不到有用的信息。近年来，随着城市化进程的加速，一线和部分二线城市的房价稳步上涨，但增速逐渐趋于平稳。与此同时，三四线城市的二手房市场也逐渐升温，吸引了更多投资者的目光。</p><p>&nbsp; &nbsp; &nbsp; &nbsp;项目是基于Python来构建智慧房源探索平台，通过采集二手房网站数据，对整体的房价进行分析和预测，并构建可视化探索平台，在购房、租房、投资和市场了解等方面具有重要用途，可以能够帮助用户快速了解各城市与各地区的房源及价格情况，找到符合自己需求的房源，也有助于做出更明智的购房或租房决策。还能够帮助房地产投资者寻找潜在的投资机会，找到潜在投资热点地区和价格合理的房源。同时更能够帮助用户了解房屋所在地的周边环境和配套设施，例如学校、医院、交通便利程度等，这有助于评估房屋的便利性和生活质量。</p><p>&nbsp; &nbsp; &nbsp; &nbsp; 通过本项目强化学习，让学生具有企业级项目开发管理体验，根据之前学习的课程知识，要求学生采用面向对象的分析与设计方法，建立该项目的原型，设计合理的数据结构与算法，在知识、能力和素质等方面得到提升和锻炼。</p><h3>项目特色</h3><ul><li><p>面向房地产行业</p></li><li><p>项目涉及的知识面广，采用分级建设模式，从数据采集、清洗、分析、挖掘、可视化等多个环节，需要综合运用数据处理和分析算法、大数据处理技术、可视化工具等技术来实现对数据的全面挖掘和可视化展示，符合企业实际需求</p></li><li><p>整个项目结合基础理论与实际应用，由基础原理开始，逐步深入进阶应用</p></li><li><p>将教学知识点融入项目原型，以项目为原点进行教学设计改造，覆盖全知识点实践教学</p></li><li><p>可扩展功能较多，学生可以按兴趣添加新的功能，可以培养学生的创新性思维</p></li></ul><h3>项目开发技术</h3><p><span style=\"color: rgb(102, 102, 102)\">&nbsp; &nbsp; 项目是通过采集二手房网站数据，存储到MySQL数据库中，然后通过Python读取数据库数据，对房价数据进行清洗和分析，构建房价预测模型，对房价进行预测。再通过Django构建可视化探索平台，建立</span>智慧探索平台首页大屏、山东省房源情况、各城市房源情况以及各地区房源情况，能够详细展示各城市与各地区的房源及价格情况、各房源的详细信息以及房屋所在地的周边环境和配套设施，<span style=\"color: rgb(102, 102, 102)\">在购房、租房、投资和市场了解等方面具有重要用途。</span></p><p><span style=\"color: rgb(51, 51, 51)\">&nbsp; &nbsp; 项目</span>主要涉及的技术和知识点如下：</p><ul><li><p>Python、MySQL、HTML、JavaScript；</p></li><li><p>数据采集与清洗：Request、XPath、Scrapy框架、Scrapy-Redis分布式爬虫、Pandas、PyMySQL；</p></li><li><p>数据分析与挖掘：Numpy、Matplotlib、Seaborn、Python机器学习库Sklearn；</p></li><li><p>数据可视化展示：Django Web 程序开发、ECharts可视化组件、百度地图。</p></li></ul><h3>开发工具及环境</h3><figure dir=\"auto\"><table style=\"min-width: 75px\"><colgroup><col style=\"min-width: 25px\"><col style=\"min-width: 25px\"><col style=\"min-width: 25px\"></colgroup><tbody><tr><th colspan=\"1\" rowspan=\"1\" style=\"width: 120px\"><p>&nbsp;</p></th><th colspan=\"1\" rowspan=\"1\"><p style=\"text-align: center\">名称</p></th><th colspan=\"1\" rowspan=\"1\"><p style=\"text-align: center\">说明</p></th></tr><tr><td colspan=\"1\" rowspan=\"1\"><p>系统环境</p></td><td colspan=\"1\" rowspan=\"1\"><p>Linux操作系统</p></td><td colspan=\"1\" rowspan=\"1\"><p>CentOS 7及以上的版本</p></td></tr><tr><td colspan=\"1\" rowspan=\"1\"><p>开发环境</p></td><td colspan=\"1\" rowspan=\"1\"><p>Anaconda、PyCharm、MySQL、Redis</p></td><td colspan=\"1\" rowspan=\"1\"><p>开发环境需要安装配置Anaconda和PyCharm环境，还需要安装MySQL数据库存储数据，安装Redis实现分布式爬虫</p></td></tr><tr><td colspan=\"1\" rowspan=\"1\"><p>运行环境</p></td><td colspan=\"1\" rowspan=\"1\"><p>Python</p></td><td colspan=\"1\" rowspan=\"1\"><p>项目部署运行环境需要Python及相应的库</p></td></tr><tr><td colspan=\"1\" rowspan=\"1\"><p>开发工具</p></td><td colspan=\"1\" rowspan=\"1\"><p>Anaconda、PyCharm，Eclipse</p></td><td colspan=\"1\" rowspan=\"1\"><p>使用Anaconda编写Python代码实现爬虫、数据清洗和分析挖掘，使用PyCharm编写Python代码实现分布式爬虫以及可视化项目的搭建</p></td></tr><tr><td colspan=\"1\" rowspan=\"1\"><p>开发语言</p></td><td colspan=\"1\" rowspan=\"1\"><p>Python、JavaScript、HTML,SprintBoot, Vue.js</p></td><td colspan=\"1\" rowspan=\"1\"><p>后端涉及的开发语言包括：Python；前端涉及的开发语言包括：Python、JavaScript、HTML、SprintBoot,、Vue.js</p></td></tr></tbody></table></figure><h3>项目效果展示</h3><div style=\"text-align:left\"><img src=\"https://tecs-prod-static.obs.cn-north-1.myhuaweicloud.com:443/cbb6e39951af4189976fadaa0d2f1ed9%2Frichtext%2Fimage%2F20231013%2F4ba891b1d1e6431c83cd23486bf86620.png\" data-align=\"left\"></div><p style=\"text-align: center\">图1 智慧探索平台首页大屏展示</p><div style=\"text-align:left\"><img src=\"https://tecs-prod-static.obs.cn-north-1.myhuaweicloud.com/cbb6e39951af4189976fadaa0d2f1ed9%2Frichtext%2Fimage%2F20230922%2F0e944a3c21dd45228ba82409a71f2b21.png\" data-align=\"left\"></div><p style=\"text-align: center\">图2&nbsp; 山东省房源情况展示</p><div style=\"text-align:left\"><img src=\"https://tecs-prod-static.obs.cn-north-1.myhuaweicloud.com/cbb6e39951af4189976fadaa0d2f1ed9%2Frichtext%2Fimage%2F20230922%2F6e3cb88a9c994ba1b62d2ac391ff15e3.png\" data-align=\"left\"></div><p style=\"text-align: center\">图3 各城市房源情况展示</p><div style=\"text-align:left\"><img src=\"https://tecs-prod-static.obs.cn-north-1.myhuaweicloud.com:443/cbb6e39951af4189976fadaa0d2f1ed9%2Frichtext%2Fimage%2F20231013%2Fbe8afb5a6efb450cb8afb7bb90fbb421.png\" data-align=\"left\"></div><p style=\"text-align: center\">图4 各地区房源列表展示</p><div style=\"text-align:left\"><img src=\"https://tecs-prod-static.obs.cn-north-1.myhuaweicloud.com/cbb6e39951af4189976fadaa0d2f1ed9%2Frichtext%2Fimage%2F20230922%2F56da0464f06f4296a2c4c75061794b9c.png\" data-align=\"left\"></div><p style=\"text-align: center\">图5 各房源详细信息展示</p><h3>项目技术架构</h3><div style=\"text-align:left\"><img src=\"https://tecs-prod-static.obs.cn-north-1.myhuaweicloud.com:443/cbb6e39951af4189976fadaa0d2f1ed9%2Frichtext%2Fimage%2F20231013%2F6569db77591f411c9715d2b48887df60.png\" data-align=\"left\"></div><p>&nbsp;</p><p style=\"text-align: center\">图6&nbsp; 项目技术架构图</p>",
+    "status": "Yes",
+    "statusTitle": "是",
+    "enabledCopyGuide": 1,
+    "sequence": 0.0,
+    "createName": "刘红俊",
+    "teamSelectedNum": 34
+  },
+  "project_text": "### 项目简介\n 房地产市场是关乎国计民生的重要经济产业，随着经济的飞快发展，可用于开发的房产越来越少，更多的人开始把目光转移到二手房市场，但目前市面上的二手房网站数量繁多，数据繁杂，用户花费大量的时间却找不到有用的信息。近年来，随着城市化进程的加速，一线和部分二线城市的房价稳步上涨，但增速逐渐趋于平稳。与此同时，三四线城市的二手房市场也逐渐升温，吸引了更多投资者的目光。\n 项目是基于Python来构建智慧房源探索平台，通过采集二手房网站数据，对整体的房价进行分析和预测，并构建可视化探索平台，在购房、租房、投资和市场了解等方面具有重要用途，可以能够帮助用户快速了解各城市与各地区的房源及价格情况，找到符合自己需求的房源，也有助于做出更明智的购房或租房决策。还能够帮助房地产投资者寻找潜在的投资机会，找到潜在投资热点地区和价格合理的房源。同时更能够帮助用户了解房屋所在地的周边环境和配套设施，例如学校、医院、交通便利程度等，这有助于评估房屋的便利性和生活质量。\n 通过本项目强化学习，让学生具有企业级项目开发管理体验，根据之前学习的课程知识，要求学生采用面向对象的分析与设计方法，建立该项目的原型，设计合理的数据结构与算法，在知识、能力和素质等方面得到提升和锻炼。\n\n### 项目特色\n\n- 面向房地产行业\n\n- 项目涉及的知识面广，采用分级建设模式，从数据采集、清洗、分析、挖掘、可视化等多个环节，需要综合运用数据处理和分析算法、大数据处理技术、可视化工具等技术来实现对数据的全面挖掘和可视化展示，符合企业实际需求\n\n- 整个项目结合基础理论与实际应用，由基础原理开始，逐步深入进阶应用\n\n- 将教学知识点融入项目原型，以项目为原点进行教学设计改造，覆盖全知识点实践教学\n\n- 可扩展功能较多，学生可以按兴趣添加新的功能，可以培养学生的创新性思维\n\n### 项目开发技术\n 项目是通过采集二手房网站数据，存储到MySQL数据库中，然后通过Python读取数据库数据，对房价数据进行清洗和分析，构建房价预测模型，对房价进行预测。再通过Django构建可视化探索平台，建立智慧探索平台首页大屏、山东省房源情况、各城市房源情况以及各地区房源情况，能够详细展示各城市与各地区的房源及价格情况、各房源的详细信息以及房屋所在地的周边环境和配套设施，在购房、租房、投资和市场了解等方面具有重要用途。\n 项目主要涉及的技术和知识点如下：\n\n- Python、MySQL、HTML、JavaScript；\n\n- 数据采集与清洗：Request、XPath、Scrapy框架、Scrapy-Redis分布式爬虫、Pandas、PyMySQL；\n\n- 数据分析与挖掘：Numpy、Matplotlib、Seaborn、Python机器学习库Sklearn；\n\n- 数据可视化展示：Django Web 程序开发、ECharts可视化组件、百度地图。\n\n### 开发工具及环境\n\n名称\n说明\n\n系统环境\nLinux操作系统\nCentOS 7及以上的版本\n\n开发环境\nAnaconda、PyCharm、MySQL、Redis\n开发环境需要安装配置Anaconda和PyCharm环境，还需要安装MySQL数据库存储数据，安装Redis实现分布式爬虫\n\n运行环境\nPython\n项目部署运行环境需要Python及相应的库\n\n开发工具\nAnaconda、PyCharm，Eclipse\n使用Anaconda编写Python代码实现爬虫、数据清洗和分析挖掘，使用PyCharm编写Python代码实现分布式爬虫以及可视化项目的搭建\n\n开发语言\nPython、JavaScript、HTML,SprintBoot, Vue.js\n后端涉及的开发语言包括：Python；前端涉及的开发语言包括：Python、JavaScript、HTML、SprintBoot,、Vue.js\n\n### 项目效果展示\n\n[??] https://tecs-prod-static.obs.cn-north-1.myhuaweicloud.com:443/cbb6e39951af4189976fadaa0d2f1ed9%2Frichtext%2Fimage%2F20231013%2F4ba891b1d1e6431c83cd23486bf86620.png\n\n图1 智慧探索平台首页大屏展示\n\n[??] https://tecs-prod-static.obs.cn-north-1.myhuaweicloud.com/cbb6e39951af4189976fadaa0d2f1ed9%2Frichtext%2Fimage%2F20230922%2F0e944a3c21dd45228ba82409a71f2b21.png\n\n图2 山东省房源情况展示\n\n[??] https://tecs-prod-static.obs.cn-north-1.myhuaweicloud.com/cbb6e39951af4189976fadaa0d2f1ed9%2Frichtext%2Fimage%2F20230922%2F6e3cb88a9c994ba1b62d2ac391ff15e3.png\n\n图3 各城市房源情况展示\n\n[??] https://tecs-prod-static.obs.cn-north-1.myhuaweicloud.com:443/cbb6e39951af4189976fadaa0d2f1ed9%2Frichtext%2Fimage%2F20231013%2Fbe8afb5a6efb450cb8afb7bb90fbb421.png\n\n图4 各地区房源列表展示\n\n[??] https://tecs-prod-static.obs.cn-north-1.myhuaweicloud.com/cbb6e39951af4189976fadaa0d2f1ed9%2Frichtext%2Fimage%2F20230922%2F56da0464f06f4296a2c4c75061794b9c.png\n\n图5 各房源详细信息展示\n\n### 项目技术架构\n\n[??] https://tecs-prod-static.obs.cn-north-1.myhuaweicloud.com:443/cbb6e39951af4189976fadaa0d2f1ed9%2Frichtext%2Fimage%2F20231013%2F6569db77591f411c9715d2b48887df60.png\n\n图6 项目技术架构图",
+  "images": [
+    "https://tecs-prod-static.obs.cn-north-1.myhuaweicloud.com:443/cbb6e39951af4189976fadaa0d2f1ed9%2Frichtext%2Fimage%2F20231013%2F4ba891b1d1e6431c83cd23486bf86620.png",
+    "https://tecs-prod-static.obs.cn-north-1.myhuaweicloud.com/cbb6e39951af4189976fadaa0d2f1ed9%2Frichtext%2Fimage%2F20230922%2F0e944a3c21dd45228ba82409a71f2b21.png",
+    "https://tecs-prod-static.obs.cn-north-1.myhuaweicloud.com/cbb6e39951af4189976fadaa0d2f1ed9%2Frichtext%2Fimage%2F20230922%2F6e3cb88a9c994ba1b62d2ac391ff15e3.png",
+    "https://tecs-prod-static.obs.cn-north-1.myhuaweicloud.com:443/cbb6e39951af4189976fadaa0d2f1ed9%2Frichtext%2Fimage%2F20231013%2Fbe8afb5a6efb450cb8afb7bb90fbb421.png",
+    "https://tecs-prod-static.obs.cn-north-1.myhuaweicloud.com/cbb6e39951af4189976fadaa0d2f1ed9%2Frichtext%2Fimage%2F20230922%2F56da0464f06f4296a2c4c75061794b9c.png",
+    "https://tecs-prod-static.obs.cn-north-1.myhuaweicloud.com:443/cbb6e39951af4189976fadaa0d2f1ed9%2Frichtext%2Fimage%2F20231013%2F6569db77591f411c9715d2b48887df60.png"
+  ],
+  "task_tree_from_rendered_dom": [
+    {
+      "level": 1,
+      "title": "??",
+      "hours": ""
+    },
+    {
+      "level": 1,
+      "title": "??????",
+      "hours": "?3??"
+    },
+    {
+      "level": 2,
+      "title": "??1???????",
+      "hours": "2??"
+    },
+    {
+      "level": 2,
+      "title": "??2?????????????",
+      "hours": "1??"
+    },
+    {
+      "level": 1,
+      "title": "????????",
+      "hours": "?3??"
+    },
+    {
+      "level": 2,
+      "title": "??1???? ??????",
+      "hours": "1??"
+    },
+    {
+      "level": 2,
+      "title": "??2?????????????????",
+      "hours": "1??"
+    },
+    {
+      "level": 2,
+      "title": "??3??????",
+      "hours": "1??"
+    },
+    {
+      "level": 1,
+      "title": "???????????",
+      "hours": "?3??"
+    },
+    {
+      "level": 2,
+      "title": "??1???????",
+      "hours": "3??"
+    },
+    {
+      "level": 1,
+      "title": "????????",
+      "hours": "?59??"
+    },
+    {
+      "level": 2,
+      "title": "??????",
+      "hours": "8??"
+    },
+    {
+      "level": 3,
+      "title": "??1??????Python???????",
+      "hours": "6??"
+    },
+    {
+      "level": 3,
+      "title": "??2???MySQL???",
+      "hours": "2??"
+    },
+    {
+      "level": 2,
+      "title": "????????????",
+      "hours": "14??"
+    },
+    {
+      "level": 3,
+      "title": "??3???Request+XPath????????????????",
+      "hours": "2??"
+    },
+    {
+      "level": 3,
+      "title": "??4??????????????",
+      "hours": "2??"
+    },
+    {
+      "level": 3,
+      "title": "??5??????????????",
+      "hours": "2??"
+    },
+    {
+      "level": 3,
+      "title": "??6??????????????????",
+      "hours": "8??"
+    },
+    {
+      "level": 2,
+      "title": "??????????",
+      "hours": "8??"
+    },
+    {
+      "level": 3,
+      "title": "??7?????????",
+      "hours": "2??"
+    },
+    {
+      "level": 3,
+      "title": "??8????????????",
+      "hours": "4??"
+    },
+    {
+      "level": 3,
+      "title": "??9?????????",
+      "hours": "2??"
+    },
+    {
+      "level": 2,
+      "title": "???????????",
+      "hours": "29??"
+    },
+    {
+      "level": 3,
+      "title": "??10??????????????",
+      "hours": "0.5??"
+    },
+    {
+      "level": 3,
+      "title": "??11?????Django?????ECharts????",
+      "hours": "1.5??"
+    },
+    {
+      "level": 3,
+      "title": "??12???????????Django??",
+      "hours": "2??"
+    },
+    {
+      "level": 3,
+      "title": "??13????????????????",
+      "hours": "4??"
+    },
+    {
+      "level": 3,
+      "title": "??14?????????????????",
+      "hours": "6??"
+    },
+    {
+      "level": 3,
+      "title": "??15??????????????",
+      "hours": "4??"
+    },
+    {
+      "level": 3,
+      "title": "??16??????????????",
+      "hours": "4??"
+    },
+    {
+      "level": 3,
+      "title": "??17?????????????????",
+      "hours": "5??"
+    },
+    {
+      "level": 3,
+      "title": "??18??????????????",
+      "hours": "2??"
+    },
+    {
+      "level": 1,
+      "title": "???????????",
+      "hours": "?1??"
+    },
+    {
+      "level": 2,
+      "title": "??1??????????",
+      "hours": "1??"
+    },
+    {
+      "level": 1,
+      "title": "????????",
+      "hours": "?3??"
+    },
+    {
+      "level": 2,
+      "title": "????",
+      "hours": "3??"
+    }
+  ],
+  "detail_api_note": "?? /api/course/projects/guides/tree ? /api/course/projects/guides/{id} ?????????????????? 401????????????????????????"
+}

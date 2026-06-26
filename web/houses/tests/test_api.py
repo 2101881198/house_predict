@@ -52,6 +52,56 @@ def test_predict_api_returns_price(client, settings, tmp_path):
 
 
 @pytest.mark.django_db
+def test_predict_api_returns_chart_comparison_data(client, settings, tmp_path):
+    settings.MODEL_DIR = tmp_path / "missing-models"
+    city = City.objects.create(name="济南")
+    district = District.objects.create(city=city, name="历下")
+    House.objects.create(
+        title="历下参考房源",
+        city=city,
+        district=district,
+        community="泉城花园",
+        total_price=Decimal("200.00"),
+        unit_price=Decimal("20000.00"),
+        area=Decimal("100.00"),
+        room_type="两室一厅",
+        floor="中楼层",
+        direction="南北",
+        decoration="精装",
+        build_year=2015,
+        crawl_time=timezone.now(),
+    )
+
+    response = client.post(
+        reverse("houses:api_predict_price"),
+        data=json.dumps({"city": "济南", "district": "历下", "area": 100}),
+        content_type="application/json",
+    )
+
+    assert response.status_code == 200
+    comparison = response.json()["data"]["comparison"]
+    assert comparison[0] == {"label": "预测总价", "value": 200.0}
+    assert {"label": "区域均价估算", "value": 200.0} in comparison
+    assert {"label": "城市均价估算", "value": 200.0} in comparison
+
+
+@pytest.mark.django_db
+def test_predict_page_shows_recent_prediction_records(client):
+    PredictResult.objects.create(
+        input_features={"city": "济南", "area": 90},
+        predicted_price=Decimal("180.00"),
+        predicted_unit_price=Decimal("20000.00"),
+        model_name="规则估算",
+    )
+
+    response = client.get(reverse("houses:predict"))
+
+    assert response.status_code == 200
+    assert "最近预测记录".encode() in response.content
+    assert b"180.00" in response.content
+
+
+@pytest.mark.django_db
 def test_houses_api_rejects_post(client):
     response = client.post(reverse("houses:api_houses"))
 

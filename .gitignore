@@ -17,7 +17,12 @@ __pycache__/
 .coverage
 htmlcov/
 
+# Local logs and scratch files
+*.log
+docs/encoding_test*.txt
+
 # Model artifacts and generated data
+house_clean.csv
 *.pkl
 *.pickle
 *.joblib

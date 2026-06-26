@@ -7,6 +7,7 @@ from django.core.paginator import Paginator
 from django.db.models import Avg
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
+from django.templatetags.static import static
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_http_methods
 
@@ -14,12 +15,14 @@ from houses.models import City, CrawlTask, House, PredictResult
 from houses.services.analysis import (
     build_area_buckets,
     build_city_stats,
+    build_decoration_distribution,
     build_overview,
     build_price_buckets,
     build_province_stats,
     build_room_type_distribution,
 )
 from houses.services.prediction import predict_price
+from houses.services.teacher_data import CITY_MAP_FILES
 
 
 SORT_FIELDS = {
@@ -34,6 +37,7 @@ SORT_FIELDS = {
 
 
 def ok(data, message="success"):
+    # API 成功时统一返回这个结构，前端只需要固定读取 data 字段。
     return JsonResponse(
         {"code": 200, "message": message, "data": data},
         json_dumps_params={"ensure_ascii": False},
@@ -41,6 +45,7 @@ def ok(data, message="success"):
 
 
 def error_response(code, message, status):
+    # API 失败时统一返回错误码、错误信息和空 data。
     return JsonResponse(
         {"code": code, "message": message, "data": None},
         status=status,
@@ -57,16 +62,19 @@ def forbidden(message="Forbidden"):
 
 
 class BadRequest(ValueError):
+    # 参数校验失败时抛这个异常，外层接口会转换成 400 JSON 响应。
     pass
 
 
 def _number(value):
+    # Decimal 等数据库数值不能直接友好地输出给 JSON，这里统一转成 float。
     if value is None:
         return None
     return float(value)
 
 
 def _decimal(value, field_name="value", strict=False):
+    # 把查询参数里的价格/面积转换成 Decimal，strict=True 时非法值会报错。
     try:
         if value in ("", None):
             return None
@@ -83,6 +91,7 @@ def _decimal(value, field_name="value", strict=False):
 
 
 def _positive_int(value, default, maximum=None, field_name="value", strict=False):
+    # 解析页码、每页条数等正整数，并可限制最大值，避免一次查太多数据。
     try:
         if value in ("", None):
             return default
@@ -101,6 +110,7 @@ def _positive_int(value, default, maximum=None, field_name="value", strict=False
 
 
 def _json_body(request):
+    # 读取 POST 请求中的 JSON；如果 JSON 格式不对，直接返回 400。
     try:
         if not request.body:
             return {}, None
@@ -136,6 +146,7 @@ def _clean_text(data, field_name, default, max_length):
 
 
 def staff_required_json(view_func):
+    # 管理类 API 专用装饰器：必须登录且是 staff，否则返回 JSON 403。
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated or not request.user.is_staff:
@@ -146,6 +157,7 @@ def staff_required_json(view_func):
 
 
 def _house_dict(house):
+    # 把 House 模型对象转换成前端/API 更容易使用的字典。
     return {
         "id": house.id,
         "title": house.title,
@@ -169,6 +181,7 @@ def _house_dict(house):
 
 
 def _filter_by_lookup(queryset, field, value):
+    # city/district 既支持传 ID，也支持直接传名称。
     if not value:
         return queryset
     if str(value).isdigit():
@@ -177,6 +190,7 @@ def _filter_by_lookup(queryset, field, value):
 
 
 def _filtered_houses(params, strict=False):
+    # 房源列表的核心筛选逻辑：页面列表和 /api/houses/ 共用这一套。
     queryset = House.objects.select_related("city", "district")
     queryset = _filter_by_lookup(queryset, "city", params.get("city"))
     queryset = _filter_by_lookup(queryset, "district", params.get("district"))
@@ -212,10 +226,12 @@ def _filtered_houses(params, strict=False):
 
 
 def _cities_with_districts():
+    # 页面筛选框需要“城市 + 下面的区县”，这里一次性预加载，减少数据库查询。
     return City.objects.prefetch_related("districts").order_by("name")
 
 
 def _room_types():
+    # 从已有房源中提取所有户型，用于列表页筛选下拉框。
     return (
         House.objects.exclude(room_type="")
         .values_list("room_type", flat=True)
@@ -225,17 +241,23 @@ def _room_types():
 
 
 def dashboard(request):
+    # 首页看板：展示总量、均价、趋势、城市分布等总览数据。
     return render(
         request,
         "houses/dashboard.html",
         {
             "overview": build_overview(),
             "price_buckets": build_price_buckets(),
+            "area_buckets": build_area_buckets(),
+            "room_types": build_room_type_distribution(),
+            "decorations": build_decoration_distribution(),
+            "cities": City.objects.order_by("name"),
         },
     )
 
 
 def province(request):
+    # 省级分析页：按城市汇总，并把数据交给前端地图和图表渲染。
     return render(
         request,
         "houses/province.html",
@@ -244,12 +266,17 @@ def province(request):
             "price_buckets": build_price_buckets(),
             "area_buckets": build_area_buckets(),
             "room_types": build_room_type_distribution(),
+            "map_meta": {
+                "province_map_name": "shandong",
+                "city_map_base_url": static("houses/maps/"),
+            },
         },
     )
 
 
 def city_detail(request, city_id):
-    get_object_or_404(City, id=city_id)
+    # 城市详情页：展示某个城市下各区县的房源分布和价格结构。
+    city = get_object_or_404(City, id=city_id)
     return render(
         request,
         "houses/city.html",
@@ -258,11 +285,18 @@ def city_detail(request, city_id):
             "price_buckets": build_price_buckets(city_id),
             "area_buckets": build_area_buckets(city_id),
             "room_types": build_room_type_distribution(city_id),
+            "decorations": build_decoration_distribution(city_id),
+            "map_meta": {
+                "city_name": city.name,
+                "city_map_file": CITY_MAP_FILES.get(city.name),
+                "city_map_base_url": static("houses/maps/"),
+            },
         },
     )
 
 
 def house_list(request):
+    # 房源列表页：处理筛选、排序、分页，然后渲染 HTML 列表。
     houses = _filtered_houses(request.GET)
     page_size = _positive_int(request.GET.get("page_size"), 10, maximum=50)
     page_number = _positive_int(request.GET.get("page"), 1)
@@ -282,6 +316,7 @@ def house_list(request):
 
 
 def house_detail(request, house_id):
+    # 房源详情页：展示单套房源，并补充同区县的相似房源和区域均价。
     house = get_object_or_404(
         House.objects.select_related("city", "district"), id=house_id
     )
@@ -306,11 +341,20 @@ def house_detail(request, house_id):
 
 
 def predict_page(request):
-    return render(request, "houses/predict.html", {"cities": _cities_with_districts()})
+    # 预测页面：提供城市/区县选项，并展示最近的预测记录。
+    return render(
+        request,
+        "houses/predict.html",
+        {
+            "cities": _cities_with_districts(),
+            "recent_predictions": PredictResult.objects.order_by("-predict_time")[:10],
+        },
+    )
 
 
 @require_GET
 def api_houses(request):
+    # 房源列表 API：返回分页后的 JSON，支持城市、区县、价格、面积等筛选。
     try:
         houses = _filtered_houses(request.GET, strict=True)
     except BadRequest as exc:
@@ -331,6 +375,7 @@ def api_houses(request):
 
 @require_GET
 def api_house_detail(request, house_id):
+    # 单套房源详情 API：根据房源 ID 返回完整字段。
     house = get_object_or_404(
         House.objects.select_related("city", "district"), id=house_id
     )
@@ -339,16 +384,19 @@ def api_house_detail(request, house_id):
 
 @require_GET
 def api_overview(request):
+    # 首页总览统计 API。
     return ok(build_overview())
 
 
 @require_GET
 def api_province(request):
+    # 省级城市统计 API。
     return ok(build_province_stats())
 
 
 @require_GET
 def api_city(request):
+    # 城市区县统计 API：必须传 city_id。
     city_id = _positive_int(request.GET.get("city_id"), None)
     if city_id is None:
         return JsonResponse(
@@ -369,6 +417,7 @@ def api_city(request):
 
 @csrf_exempt
 def api_predict_price(request):
+    # 房价预测 API：接收 POST JSON，调用预测服务，并保存预测记录。
     if request.method != "POST":
         return JsonResponse(
             {"code": 405, "message": "仅支持 POST", "data": None},
@@ -398,6 +447,7 @@ def api_predict_price(request):
 
 
 def _crawl_task_dict(task):
+    # 把 CrawlTask 转成 JSON 友好的字典。
     return {
         "id": task.id,
         "task_name": task.task_name,
@@ -418,6 +468,7 @@ def _crawl_task_dict(task):
 @login_required
 @require_http_methods(["GET", "POST"])
 def api_crawl_tasks(request):
+    # 爬取任务管理 API：GET 查看最近任务，POST 创建新任务；需要管理员权限。
     if request.method == "GET":
         tasks = CrawlTask.objects.order_by("-created_at")[:100]
         return ok({"items": [_crawl_task_dict(task) for task in tasks]})

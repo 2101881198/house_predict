@@ -6,15 +6,49 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}智慧房源探索平台{% endblock %}</title>
   <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
-  <link rel="stylesheet" href="{% static 'houses/css/app.css' %}">
+  <link rel="stylesheet" href="{% static 'houses/css/app.css' %}?v=20260625-sidebar-v1">
 </head>
 <body>
   <nav class="topbar">
+    <time id="current-time" class="current-time" datetime=""></time>
     <a href="{% url 'houses:dashboard' %}" class="brand">智慧房源探索平台</a>
+    <div class="nav-links" aria-label="主导航">
+      <a href="{% url 'houses:dashboard' %}">山东省总览</a>
+      <a href="{% url 'houses:province' %}">城市对比</a>
+      <a href="{% url 'houses:house_list' %}">房源列表</a>
+      <a href="{% url 'houses:predict' %}">价格预测</a>
+    </div>
   </nav>
   <main class="page">
     {% block content %}{% endblock %}
   </main>
+  <script>
+    (function () {
+      const timeNode = document.getElementById("current-time");
+      if (!timeNode) {
+        return;
+      }
+
+      const formatter = new Intl.DateTimeFormat("zh-CN", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      });
+
+      function updateCurrentTime() {
+        const now = new Date();
+        timeNode.textContent = formatter.format(now);
+        timeNode.dateTime = now.toISOString();
+      }
+
+      updateCurrentTime();
+      window.setInterval(updateCurrentTime, 1000);
+    })();
+  </script>
   {% block scripts %}{% endblock %}
 </body>
 </html>

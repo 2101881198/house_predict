@@ -76,11 +76,68 @@
   </div>
   <p class="muted" data-field="error" style="display: none;"></p>
   <p class="muted" data-field="note"></p>
+  <div id="predict-comparison-chart" class="chart" style="margin-top: 12px;"></div>
+</section>
+
+<section class="panel" style="margin-top: 16px;">
+  <h2>最近预测记录</h2>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>时间</th>
+        <th>模型</th>
+        <th>预测总价</th>
+        <th>预测单价</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in recent_predictions %}
+        <tr>
+          <td>{{ item.predict_time|date:"Y-m-d H:i" }}</td>
+          <td>{{ item.model_name }}</td>
+          <td>{{ item.predicted_price }} 万元</td>
+          <td>{{ item.predicted_unit_price }} 元/㎡</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4" class="muted">暂无预测记录</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </section>
 {% endblock %}
 
 {% block scripts %}
 <script>
+let predictComparisonChart = null;
+
+function renderPredictComparison(rows) {
+  const element = document.getElementById("predict-comparison-chart");
+  if (!element || typeof echarts === "undefined") {
+    return;
+  }
+  const data = (rows || []).filter((row) => Number.isFinite(Number(row.value)));
+  if (!predictComparisonChart) {
+    predictComparisonChart = echarts.init(element);
+  }
+  predictComparisonChart.setOption({
+    tooltip: {
+      trigger: "axis",
+      valueFormatter: (value) => `${value} 万元`,
+    },
+    grid: {left: 56, right: 24, top: 32, bottom: 44},
+    xAxis: {type: "category", data: data.map((row) => row.label)},
+    yAxis: {type: "value", name: "万元"},
+    series: [
+      {
+        name: "参考总价",
+        type: "bar",
+        data: data.map((row) => row.value),
+        itemStyle: {color: "#2563eb"},
+      },
+    ],
+  });
+}
+
 document.getElementById("predict-form").addEventListener("submit", async (event) => {
   event.preventDefault();
   const form = event.currentTarget;
@@ -110,13 +167,21 @@ document.getElementById("predict-form").addEventListener("submit", async (event)
     panel.querySelector('[data-field="predicted_unit_price"]').textContent = result.predicted_unit_price ?? "-";
     panel.querySelector('[data-field="model_name"]').textContent = result.model_name || "-";
     panel.querySelector('[data-field="note"]').textContent = result.note || "";
+    renderPredictComparison(result.comparison || []);
   } catch (error) {
     panel.querySelector('[data-field="predicted_price"]').textContent = "-";
     panel.querySelector('[data-field="predicted_unit_price"]').textContent = "-";
     panel.querySelector('[data-field="model_name"]').textContent = "-";
     panel.querySelector('[data-field="note"]').textContent = "";
+    renderPredictComparison([]);
     errorField.style.display = "block";
     errorField.textContent = error.message || "Prediction failed";
+  }
+});
+
+window.addEventListener("resize", () => {
+  if (predictComparisonChart) {
+    predictComparisonChart.resize();
   }
 });
 </script>

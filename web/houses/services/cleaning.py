@@ -11,6 +11,7 @@ _YEAR_PATTERN = re.compile(r"(19\d{2}|20\d{2})")
 
 
 def compact_text(value):
+    # 清理普通文本：None 变空字符串，多余空白压缩成一个空格。
     if value is None:
         return ""
     return re.sub(r"\s+", " ", str(value)).strip()
@@ -21,6 +22,7 @@ def compact_room_type(value):
 
 
 def parse_decimal_value(value):
+    # 从“180万”“22500元/平”这类文本中提取数字，并转成 Decimal。
     if value is None:
         return None
     if isinstance(value, bool):
@@ -99,6 +101,7 @@ def decimal_gt(left, right):
 
 
 def extract_year(value):
+    # 从“建成于2015年”这类文本中提取 4 位年份。
     if value is None:
         return None
     if isinstance(value, int):
@@ -110,6 +113,7 @@ def extract_year(value):
 
 
 def parse_crawl_time(value):
+    # 解析爬取/挂牌时间；没有时间时默认使用当前时间。
     if value is None or value == "":
         return timezone.now()
     if isinstance(value, datetime):
@@ -144,6 +148,7 @@ def _optional_text(record, key):
 
 
 def clean_house_record(record):
+    # 清洗单条房源记录：格式统一、字段校验、过滤明显异常的数据。
     total_price = _decimal_from_number(record.get("total_price"), 2)
     unit_price = _decimal_from_number(record.get("unit_price"), 2)
     area = _decimal_from_number(record.get("area"), 2)
@@ -152,6 +157,7 @@ def clean_house_record(record):
     crawl_time = parse_crawl_time(record.get("crawl_time"))
 
     if total_price is None or unit_price is None or area is None:
+        # 总价、单价、面积是核心字段，缺任何一个都无法使用。
         return None
     if has_explicit_value(record.get("longitude")) and longitude is None:
         return None
@@ -164,8 +170,10 @@ def clean_house_record(record):
         or decimal_lt(area, Decimal("10"))
         or decimal_lte(unit_price, Decimal("1000"))
     ):
+        # 过滤不合理数据：非正价格、面积过小、单价明显过低。
         return None
     if decimal_gt(unit_price, Decimal("200000")):
+        # 单价过高通常是脏数据，避免污染统计和模型训练。
         return None
 
     source_url = compact_text(record.get("source_url"))

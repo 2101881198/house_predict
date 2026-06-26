@@ -7,6 +7,7 @@ class Command(BaseCommand):
     help = "Train the house price prediction model."
 
     def handle(self, *args, **options):
+        # 命令行入口：调用服务层训练模型，并把训练结果打印到终端。
         result = train_price_model()
         if result.get("trained"):
             self.stdout.write(self.style.SUCCESS(f"训练完成: {result}"))

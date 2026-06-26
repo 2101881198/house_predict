@@ -12,6 +12,7 @@ from houses.services.analysis import (
 
 
 def upsert_analysis_result(analysis_type, result, city=None, district=None):
+    # 更新或创建一条统计缓存；如果同类型缓存重复存在，会保留一条并删除多余的。
     filters = {"analysis_type": analysis_type}
     if city is None:
         filters["city__isnull"] = True
@@ -46,6 +47,7 @@ class Command(BaseCommand):
     help = "Generate cached house market analysis payloads."
 
     def handle(self, *args, **options):
+        # 生成全局统计和每个城市的统计结果，保存到 AnalysisResult 表。
         payloads = {
             "overview": build_overview(),
             "province": build_province_stats(),

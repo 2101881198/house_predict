@@ -1,4 +1,5 @@
 import json
+from datetime import UTC
 from decimal import Decimal
 
 import pytest
@@ -7,7 +8,11 @@ from django.utils import timezone
 
 from houses.models import AnalysisResult, City, District, House
 from houses.services.analysis import (
+    _build_price_trend,
+    build_city_stats,
+    build_decoration_distribution,
     build_overview,
+    build_area_buckets,
     build_price_buckets,
     build_province_stats,
     build_room_type_distribution,
@@ -67,6 +72,171 @@ def test_build_overview_city_count_counts_city_rows_without_houses():
     overview = build_overview()
 
     assert overview["city_count"] == 2
+
+
+@pytest.mark.django_db
+def test_dashboard_analysis_outputs_include_richer_visualization_data():
+    first_city = City.objects.create(name="First City")
+    first_district = District.objects.create(city=first_city, name="First District")
+    second_city = City.objects.create(name="Second City")
+    second_district = District.objects.create(city=second_city, name="Second District")
+    House.objects.create(
+        title="First visual house",
+        city=first_city,
+        district=first_district,
+        total_price=Decimal("100.00"),
+        unit_price=Decimal("10000.00"),
+        area=Decimal("80.00"),
+        room_type="2 bed",
+        decoration="精装",
+        crawl_time=timezone.now(),
+    )
+    House.objects.create(
+        title="Second visual house",
+        city=second_city,
+        district=second_district,
+        total_price=Decimal("300.00"),
+        unit_price=Decimal("30000.00"),
+        area=Decimal("130.00"),
+        room_type="3 bed",
+        decoration="毛坯",
+        crawl_time=timezone.now(),
+    )
+
+    overview = build_overview()
+
+    assert overview["city_price_rankings"] == [
+        {
+            "city": "Second City",
+            "count": 1,
+            "avg_total_price": 300.0,
+            "avg_unit_price": 30000.0,
+        },
+        {
+            "city": "First City",
+            "count": 1,
+            "avg_total_price": 100.0,
+            "avg_unit_price": 10000.0,
+        },
+    ]
+    assert sum(row["count"] for row in build_area_buckets()) == 2
+    assert build_decoration_distribution() == [
+        {"decoration": "毛坯", "count": 1},
+        {"decoration": "精装", "count": 1},
+    ]
+
+
+def test_build_price_trend_groups_by_local_quarter():
+    first_time = timezone.datetime(2023, 5, 3, 10, 30, tzinfo=UTC)
+    second_time = timezone.datetime(2023, 6, 4, 2, 0, tzinfo=UTC)
+    third_time = timezone.datetime(2023, 8, 4, 2, 0, tzinfo=UTC)
+
+    trend = _build_price_trend(
+        [
+            {"crawl_time": first_time, "total_price": Decimal("100.00")},
+            {"crawl_time": first_time, "total_price": Decimal("200.00")},
+            {"crawl_time": second_time, "total_price": Decimal("300.00")},
+            {"crawl_time": third_time, "total_price": Decimal("500.00")},
+        ]
+    )
+
+    assert trend == [
+        {"date": "2023 Q2", "avg_total_price": 200.0, "count": 3},
+        {"date": "2023 Q3", "avg_total_price": 500.0, "count": 1},
+    ]
+
+
+@pytest.mark.django_db
+def test_build_overview_includes_top_city_price_trends():
+    first_city = City.objects.create(name="First City")
+    first_district = District.objects.create(city=first_city, name="First District")
+    second_city = City.objects.create(name="Second City")
+    second_district = District.objects.create(city=second_city, name="Second District")
+    first_time = timezone.datetime(2023, 5, 3, 10, 30, tzinfo=UTC)
+    second_time = timezone.datetime(2023, 5, 4, 10, 30, tzinfo=UTC)
+
+    House.objects.create(
+        title="First city day one",
+        city=first_city,
+        district=first_district,
+        total_price=Decimal("100.00"),
+        unit_price=Decimal("10000.00"),
+        area=Decimal("80.00"),
+        room_type="2 bed",
+        crawl_time=first_time,
+    )
+    House.objects.create(
+        title="First city day two",
+        city=first_city,
+        district=first_district,
+        total_price=Decimal("200.00"),
+        unit_price=Decimal("20000.00"),
+        area=Decimal("90.00"),
+        room_type="3 bed",
+        crawl_time=second_time,
+    )
+    House.objects.create(
+        title="Second city day one",
+        city=second_city,
+        district=second_district,
+        total_price=Decimal("300.00"),
+        unit_price=Decimal("30000.00"),
+        area=Decimal("100.00"),
+        room_type="3 bed",
+        crawl_time=first_time,
+    )
+
+    overview = build_overview()
+
+    assert overview["city_price_trends"] == [
+        {
+            "city": "First City",
+            "trend": [
+                {"date": "2023 Q2", "avg_total_price": 150.0, "count": 2},
+            ],
+        },
+        {
+            "city": "Second City",
+            "trend": [
+                {"date": "2023 Q2", "avg_total_price": 300.0, "count": 1},
+            ],
+        },
+    ]
+
+
+@pytest.mark.django_db
+def test_build_city_stats_includes_city_price_trend():
+    city = City.objects.create(name="Trend City")
+    district = District.objects.create(city=city, name="Trend District")
+    first_time = timezone.datetime(2023, 5, 3, 10, 30, tzinfo=UTC)
+    second_time = timezone.datetime(2023, 5, 4, 10, 30, tzinfo=UTC)
+
+    House.objects.create(
+        title="Trend day one",
+        city=city,
+        district=district,
+        total_price=Decimal("120.00"),
+        unit_price=Decimal("12000.00"),
+        area=Decimal("80.00"),
+        room_type="2 bed",
+        crawl_time=first_time,
+    )
+    House.objects.create(
+        title="Trend day two",
+        city=city,
+        district=district,
+        total_price=Decimal("180.00"),
+        unit_price=Decimal("18000.00"),
+        area=Decimal("90.00"),
+        room_type="3 bed",
+        crawl_time=second_time,
+    )
+
+    stats = build_city_stats(city.id)
+
+    assert stats["trend"] == [
+        {"date": "2023 Q2", "avg_total_price": 150.0, "count": 2},
+    ]
 
 
 @pytest.mark.django_db

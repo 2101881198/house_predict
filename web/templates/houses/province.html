@@ -1,35 +1,46 @@
 {% extends "houses/base.html" %}
 {% load static %}
 
-{% block title %}全省分析{% endblock %}
+{% block title %}山东省城市对比{% endblock %}
 
 {% block content %}
 {{ stats|json_script:"province-stats-data" }}
 {{ price_buckets|json_script:"province-price-buckets-data" }}
 {{ area_buckets|json_script:"province-area-buckets-data" }}
 {{ room_types|json_script:"province-room-types-data" }}
+{{ map_meta|json_script:"teacher-map-meta" }}
 
-<section class="grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
+<header class="page-heading">
+  <h1>山东省城市对比</h1>
+  <p>比较山东省各地级市的房源数量、平均价格和价格范围。</p>
+</header>
+
+<section class="panel map-panel">
+  <h2>山东省各市房源地图</h2>
+  <div id="province-map-chart" class="chart map-chart"></div>
+</section>
+
+<section class="grid dashboard-grid">
   <div class="panel">
-    <h1>全省城市房源分析</h1>
+    <h2>各地级市房源数量与单价</h2>
     <div id="province-chart" class="chart"></div>
   </div>
   <div class="panel">
-    <h2>总价区间分布</h2>
+    <h2>山东省总价区间</h2>
     <div id="province-price-chart" class="chart"></div>
   </div>
   <div class="panel">
-    <h2>面积区间分布</h2>
+    <h2>山东省面积区间</h2>
     <div id="province-area-chart" class="chart"></div>
   </div>
   <div class="panel">
-    <h2>户型结构</h2>
+    <h2>山东省户型结构</h2>
     <div id="province-room-chart" class="chart"></div>
   </div>
 </section>
 
 <section class="panel" style="margin-top: 16px;">
-  <h2>城市明细</h2>
+  <h2>地级市明细</h2>
   <table class="table">
     <thead>
       <tr>
@@ -60,6 +71,7 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{% static 'houses/js/charts.js' %}"></script>
+<script src="{% static 'houses/js/vendor/shandong.js' %}"></script>
+<script src="{% static 'houses/js/charts.js' %}?v=20260626-hidden-x-axis-v1"></script>
 <script>renderProvinceCharts();</script>
 {% endblock %}
