@@ -1,0 +1,43 @@
+# ============================================
+# 依赖清单 — 适配 CentOS 7 / Python 3.9
+# GCC 4.8.5 环境下使用预编译 wheel 安装
+# ============================================
+#
+# 安装步骤（按顺序执行）：
+#   1. yum install -y gcc-c++ python3-devel
+#   2. pip3 install --upgrade pip setuptools wheel
+#   3. pip3 install -r requirements.txt --only-binary :all:
+#
+#   如果 --only-binary 找不到某些包的 wheel，
+#   去掉该参数让 pip 自动选择（部分包需编译）
+
+# --- Scrapy 分布式爬虫 ---
+scrapy==2.8.0
+scrapy-redis==0.7.3
+
+# --- 数据处理（使用有 manylinux wheel 的版本） ---
+pandas==1.5.3
+numpy==1.24.3
+
+# --- 科学计算 ---
+scipy==1.10.1
+scikit-learn==1.2.2
+
+# --- 机器学习 ---
+xgboost==1.7.6
+
+# --- HTTP & 解析 ---
+requests==2.28.2
+lxml==4.9.3
+urllib3==1.26.16
+
+# --- 数据库 ---
+PyMySQL==1.0.3
+redis==4.5.5
+
+# --- 可视化 ---
+matplotlib==3.7.2
+seaborn==0.12.2
+
+# --- 工具 ---
+fake-useragent==1.4.0
