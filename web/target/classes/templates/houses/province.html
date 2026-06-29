@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>山东省城市对比</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <link rel="stylesheet" href="/houses/css/app.css">
+</head>
+<body>
+<nav class="topbar">
+    <time id="current-time" class="current-time" datetime=""></time>
+    <a href="/" class="brand">智慧房源探索平台</a>
+    <div class="nav-links" aria-label="主导航">
+        <a href="/">山东省总览</a>
+        <a href="/province/">城市对比</a>
+        <a href="/houses/">房源列表</a>
+        <a href="/predict/">价格预测</a>
+    </div>
+</nav>
+<main class="page">
+    <script id="province-stats-data" type="application/json" th:utext="${statsJson}"></script>
+    <script id="province-price-buckets-data" type="application/json" th:utext="${priceBucketsJson}"></script>
+    <script id="province-area-buckets-data" type="application/json" th:utext="${areaBucketsJson}"></script>
+    <script id="province-room-types-data" type="application/json" th:utext="${roomTypesJson}"></script>
+    <script id="teacher-map-meta" type="application/json" th:utext="${mapMetaJson}"></script>
+
+    <header class="page-heading">
+        <h1>山东省城市对比</h1>
+        <p>比较山东省各地级市的房源数量、平均价格和价格范围。</p>
+    </header>
+
+    <section class="panel map-panel">
+        <h2>山东省各市房源地图</h2>
+        <div id="province-map-chart" class="chart map-chart"></div>
+    </section>
+
+    <section class="grid dashboard-grid">
+        <div class="panel">
+            <h2>各地级市房源数量与单价</h2>
+            <div id="province-chart" class="chart"></div>
+        </div>
+        <div class="panel">
+            <h2>山东省总价区间</h2>
+            <div id="province-price-chart" class="chart"></div>
+        </div>
+        <div class="panel">
+            <h2>山东省面积区间</h2>
+            <div id="province-area-chart" class="chart"></div>
+        </div>
+        <div class="panel">
+            <h2>山东省户型结构</h2>
+            <div id="province-room-chart" class="chart"></div>
+        </div>
+    </section>
+
+    <section class="panel" style="margin-top: 16px;">
+        <h2>地级市明细</h2>
+        <table class="table">
+            <thead>
+            <tr>
+                <th>城市</th>
+                <th>房源数</th>
+                <th>平均总价</th>
+                <th>平均单价</th>
+                <th>最高总价</th>
+                <th>最低总价</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="row : ${stats.cities}">
+                <td th:text="${row.city}">城市</td>
+                <td th:text="${row.count}">0</td>
+                <td th:text="${row.avg_total_price + ' 万元'}">0 万元</td>
+                <td th:text="${row.avg_unit_price + ' 元/㎡'}">0 元/㎡</td>
+                <td th:text="${row.max_total_price + ' 万元'}">0 万元</td>
+                <td th:text="${row.min_total_price + ' 万元'}">0 万元</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+<script src="/houses/js/vendor/shandong.js"></script>
+<script src="/houses/js/charts.js"></script>
+<script>renderProvinceCharts();</script>
+<script src="/houses/js/time.js"></script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>房源列表</title>
+    <link rel="stylesheet" href="/houses/css/app.css">
+</head>
+<body>
+<nav class="topbar">
+    <time id="current-time" class="current-time" datetime=""></time>
+    <a href="/" class="brand">智慧房源探索平台</a>
+    <div class="nav-links" aria-label="主导航">
+        <a href="/">山东省总览</a>
+        <a href="/province/">城市对比</a>
+        <a href="/houses/">房源列表</a>
+        <a href="/predict/">价格预测</a>
+        <a href="/admin/">管理</a>
+    </div>
+</nav>
+<main class="page">
+    <header class="page-heading">
+        <h1>房源列表</h1>
+        <p>按城市、区县、价格、面积和户型筛选房源，点击标题进入详情。</p>
+    </header>
+
+    <section class="panel">
+        <form class="form-row" method="get" action="/houses/">
+            <label>
+                城市
+                <input name="city" placeholder="例如 济南 或城市ID">
+            </label>
+            <label>
+                区县
+                <input name="district" placeholder="例如 历下区 或区县ID">
+            </label>
+            <label>
+                户型
+                <select name="room_type">
+                    <option value="">全部户型</option>
+                    <option th:each="roomType : ${roomTypes}" th:value="${roomType}" th:text="${roomType}">两室一厅</option>
+                </select>
+            </label>
+            <label>
+                最低总价
+                <input name="min_price" placeholder="万元">
+            </label>
+            <label>
+                最高总价
+                <input name="max_price" placeholder="万元">
+            </label>
+            <label>
+                排序
+                <select name="sort">
+                    <option value="-crawl_time">最新采集</option>
+                    <option value="total_price">总价从低到高</option>
+                    <option value="-total_price">总价从高到低</option>
+                    <option value="unit_price">单价从低到高</option>
+                    <option value="-unit_price">单价从高到低</option>
+                    <option value="area">面积从小到大</option>
+                    <option value="-area">面积从大到小</option>
+                </select>
+            </label>
+            <button type="submit">筛选</button>
+        </form>
+    </section>
+
+    <section class="grid stats-grid" style="margin-top: 16px;">
+        <div class="panel">
+            <h3>匹配房源</h3>
+            <div class="metric" th:text="${page.totalElements}">0</div>
+            <div class="muted">套</div>
+        </div>
+        <div class="panel">
+            <h3>当前页</h3>
+            <div class="metric"><span th:text="${page.number + 1}">1</span>/<span th:text="${page.totalPages}">1</span></div>
+            <div class="muted">每页 <span th:text="${page.size}">10</span> 套</div>
+        </div>
+    </section>
+
+    <section class="panel" style="margin-top: 16px;">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>标题</th>
+                <th>城市</th>
+                <th>区县</th>
+                <th>总价</th>
+                <th>单价</th>
+                <th>面积</th>
+                <th>户型</th>
+                <th>详情</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="house : ${page.content}">
+                <td><a th:href="@{'/houses/' + ${house.id} + '/'}" th:text="${house.title}">标题</a></td>
+                <td th:text="${house.city.name}">城市</td>
+                <td th:text="${house.district.name}">区县</td>
+                <td><span th:text="${house.totalPrice}">0</span> 万元</td>
+                <td><span th:text="${house.unitPrice}">0</span> 元/㎡</td>
+                <td><span th:text="${house.area}">0</span> ㎡</td>
+                <td th:text="${house.roomType}">户型</td>
+                <td><a th:href="@{'/houses/' + ${house.id} + '/'}">查看</a></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(page.content)}">
+                <td colspan="8" class="muted">暂无匹配房源</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="panel" style="margin-top: 16px;">
+        <div class="section-title-row">
+            <a class="compare-link" th:if="${page.hasPrevious()}" th:href="@{/houses/(page=${page.number})}">上一页</a>
+            <span class="muted">第 <span th:text="${page.number + 1}">1</span> 页，共 <span th:text="${page.totalPages}">1</span> 页</span>
+            <a class="compare-link" th:if="${page.hasNext()}" th:href="@{/houses/(page=${page.number + 2})}">下一页</a>
+        </div>
+    </section>
+</main>
+<script src="/houses/js/time.js"></script>
+</body>
+</html>
