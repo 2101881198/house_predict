@@ -2,54 +2,192 @@
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
-    <title>价格预测</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>房价预测</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
     <link rel="stylesheet" href="/houses/css/app.css">
 </head>
 <body>
-<nav>
-    <a href="/">首页</a>
-    <a href="/province/">省级分析</a>
-    <a href="/houses/">房源列表</a>
-    <a href="/predict/">价格预测</a>
+<nav class="topbar">
+    <time id="current-time" class="current-time" datetime=""></time>
+    <a href="/" class="brand">智慧房源探索平台</a>
+    <div class="nav-links" aria-label="主导航">
+        <a href="/">山东省总览</a>
+        <a href="/province/">城市对比</a>
+        <a href="/houses/">房源列表</a>
+        <a href="/predict/">价格预测</a>
+        <a href="/admin/">管理</a>
+    </div>
 </nav>
-<main>
-    <h1>房价预测</h1>
-    <form id="predict-form">
-        <input name="city" placeholder="城市，例如济南">
-        <input name="district" placeholder="区县，例如历下区">
-        <input name="area" placeholder="面积">
-        <input name="room_type" placeholder="户型">
-        <input name="floor" placeholder="楼层">
-        <input name="direction" placeholder="朝向">
-        <input name="decoration" placeholder="装修">
-        <input name="build_year" placeholder="建造年份">
-        <button type="submit">预测</button>
-    </form>
-    <pre id="predict-result"></pre>
-    <h2>最近预测</h2>
-    <table>
-        <thead><tr><th>模型</th><th>预测总价</th><th>预测单价</th><th>时间</th></tr></thead>
-        <tbody>
-        <tr th:each="item : ${recentPredictions}">
-            <td th:text="${item.modelName}">模型</td>
-            <td th:text="${item.predictedPrice}">0</td>
-            <td th:text="${item.predictedUnitPrice}">0</td>
-            <td th:text="${item.predictTime}">时间</td>
-        </tr>
-        </tbody>
-    </table>
+<main class="page">
+    <header class="page-heading">
+        <h1>房价预测</h1>
+        <p>输入房源特征后，系统会按区域均价和面积估算总价，并给出参考对比。</p>
+    </header>
+
+    <section class="panel">
+        <h2>预测参数</h2>
+        <form id="predict-form" class="form-row">
+            <label>
+                城市
+                <select name="city">
+                    <option value="">未选择</option>
+                    <option th:each="city : ${cities}" th:value="${city.name}" th:text="${city.name}">济南</option>
+                </select>
+            </label>
+            <label>
+                区县
+                <input name="district" placeholder="例如 历下区">
+            </label>
+            <label>
+                面积
+                <input name="area" type="number" step="0.01" value="90">
+            </label>
+            <label>
+                户型
+                <input name="room_type" type="text" value="两室一厅">
+            </label>
+            <label>
+                楼层
+                <input name="floor" type="text" value="中楼层">
+            </label>
+            <label>
+                朝向
+                <input name="direction" type="text" value="南北">
+            </label>
+            <label>
+                装修
+                <input name="decoration" type="text" value="精装">
+            </label>
+            <label>
+                建造年份
+                <input name="build_year" type="number" value="2015">
+            </label>
+            <button type="submit">预测</button>
+        </form>
+    </section>
+
+    <section id="predict-result" class="panel" style="display: none; margin-top: 16px;">
+        <div class="section-title-row">
+            <div>
+                <h2>预测结果</h2>
+                <p class="muted" data-field="note"></p>
+            </div>
+            <strong data-field="model_name">-</strong>
+        </div>
+        <div class="grid stats-grid">
+            <div>
+                <div class="muted">预测总价</div>
+                <div class="metric"><span data-field="predicted_price">0</span></div>
+                <div class="muted">万元</div>
+            </div>
+            <div>
+                <div class="muted">预测单价</div>
+                <div class="metric"><span data-field="predicted_unit_price">0</span></div>
+                <div class="muted">元/㎡</div>
+            </div>
+        </div>
+        <p data-field="error" style="display: none; color: var(--danger);"></p>
+        <div id="predict-comparison-chart" class="chart" style="margin-top: 12px;"></div>
+    </section>
+
+    <section class="panel" style="margin-top: 16px;">
+        <h2>最近预测记录</h2>
+        <table class="table">
+            <thead>
+            <tr>
+                <th>时间</th>
+                <th>模型</th>
+                <th>预测总价</th>
+                <th>预测单价</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="item : ${recentPredictions}">
+                <td th:text="${item.predictTime}">时间</td>
+                <td th:text="${item.modelName}">模型</td>
+                <td><span th:text="${item.predictedPrice}">0</span> 万元</td>
+                <td><span th:text="${item.predictedUnitPrice}">0</span> 元/㎡</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(recentPredictions)}">
+                <td colspan="4" class="muted">暂无预测记录</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
 </main>
 <script>
-document.getElementById('predict-form').addEventListener('submit', async function (event) {
-    event.preventDefault();
-    const body = Object.fromEntries(new FormData(event.target).entries());
-    const response = await fetch('/api/predict/price/', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(body)
+let predictComparisonChart = null;
+
+function renderPredictComparison(rows) {
+    const element = document.getElementById("predict-comparison-chart");
+    if (!element || typeof echarts === "undefined") {
+        return;
+    }
+    const data = (rows || []).filter((row) => Number.isFinite(Number(row.value)));
+    if (!predictComparisonChart) {
+        predictComparisonChart = echarts.init(element);
+    }
+    predictComparisonChart.setOption({
+        tooltip: {
+            trigger: "axis",
+            valueFormatter: (value) => `${value} 万元`,
+        },
+        grid: {left: 56, right: 24, top: 32, bottom: 44},
+        xAxis: {type: "category", data: data.map((row) => row.label)},
+        yAxis: {type: "value", name: "万元"},
+        series: [{
+            name: "参考总价",
+            type: "bar",
+            data: data.map((row) => row.value),
+            itemStyle: {color: "#2563eb"},
+            label: {show: true, position: "top"},
+        }],
     });
-    document.getElementById('predict-result').textContent = JSON.stringify(await response.json(), null, 2);
+}
+
+document.getElementById("predict-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const data = Object.fromEntries(new FormData(form).entries());
+    const panel = document.getElementById("predict-result");
+    const errorField = panel.querySelector('[data-field="error"]');
+    panel.style.display = "block";
+    try {
+        const response = await fetch("/api/predict/price/", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(data),
+        });
+        const payload = await response.json();
+        if (!response.ok || payload.code !== 200) {
+            throw new Error(payload.message || `Request failed (${response.status})`);
+        }
+        const result = payload.data || {};
+        errorField.style.display = "none";
+        errorField.textContent = "";
+        panel.querySelector('[data-field="predicted_price"]').textContent = result.predicted_price ?? "-";
+        panel.querySelector('[data-field="predicted_unit_price"]').textContent = result.predicted_unit_price ?? "-";
+        panel.querySelector('[data-field="model_name"]').textContent = result.model_name || "-";
+        panel.querySelector('[data-field="note"]').textContent = result.note || "";
+        renderPredictComparison(result.comparison || []);
+    } catch (error) {
+        panel.querySelector('[data-field="predicted_price"]').textContent = "-";
+        panel.querySelector('[data-field="predicted_unit_price"]').textContent = "-";
+        panel.querySelector('[data-field="model_name"]').textContent = "-";
+        panel.querySelector('[data-field="note"]').textContent = "";
+        renderPredictComparison([]);
+        errorField.style.display = "block";
+        errorField.textContent = error.message || "预测失败";
+    }
+});
+
+window.addEventListener("resize", () => {
+    if (predictComparisonChart) {
+        predictComparisonChart.resize();
+    }
 });
 </script>
+<script src="/houses/js/time.js"></script>
 </body>
 </html>

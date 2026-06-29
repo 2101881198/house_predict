@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>管理员登录</title>
+    <link rel="stylesheet" href="/houses/css/app.css">
+</head>
+<body>
+<nav class="topbar">
+    <a href="/" class="brand">智慧房源探索平台</a>
+    <div class="nav-links" aria-label="主导航">
+        <a href="/">山东省总览</a>
+        <a href="/province/">城市对比</a>
+        <a href="/houses/">房源列表</a>
+        <a href="/predict/">价格预测</a>
+    </div>
+</nav>
+<main class="page">
+    <section class="panel" style="max-width: 460px; margin: 64px auto 0;">
+        <h1>管理员登录</h1>
+        <p class="muted">请输入管理员账号密码进入管理后台。</p>
+        <form method="post" action="/admin/login" class="grid" style="margin-top: 18px;">
+            <label>
+                账号
+                <input name="username" autocomplete="username" required>
+            </label>
+            <label>
+                密码
+                <input name="password" type="password" autocomplete="current-password" required>
+            </label>
+            <p th:if="${error}" th:text="${error}" style="color: var(--danger); margin: 0;">账号或密码错误</p>
+            <button type="submit">登录</button>
+        </form>
+        <p class="muted" style="margin-top: 14px;">默认账号：admin，默认密码：admin123。可以在环境变量中设置 ADMIN_USERNAME 和 ADMIN_PASSWORD。</p>
+    </section>
+</main>
+</body>
+</html>
