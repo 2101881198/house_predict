@@ -62,13 +62,13 @@ public interface HouseRepository extends JpaRepository<House, Long>, JpaSpecific
     @Query("select h.decoration, count(h) from House h where h.city.id = :cityId and h.decoration <> '' group by h.decoration order by count(h) desc, h.decoration")
     List<Object[]> decorationRowsByCity(@Param("cityId") Long cityId);
 
-    @Query(value = "select concat(year(crawl_time), ' Q', quarter(crawl_time)) as period, count(*) as total, avg(total_price) as avg_total_price from houses_house where crawl_time is not null group by year(crawl_time), quarter(crawl_time) order by year(crawl_time), quarter(crawl_time)", nativeQuery = true)
+    @Query(value = "select period, count(*) as total, avg(total_price) as avg_total_price from (select concat(year(crawl_time), ' Q', quarter(crawl_time)) as period, year(crawl_time) as year_value, quarter(crawl_time) as quarter_value, total_price from houses_house where crawl_time is not null) trend_source group by period, year_value, quarter_value order by year_value, quarter_value", nativeQuery = true)
     List<Object[]> trendRows();
 
-    @Query(value = "select concat(year(h.crawl_time), ' Q', quarter(h.crawl_time)) as period, count(*) as total, avg(h.total_price) as avg_total_price from houses_house h where h.city_id = :cityId and h.crawl_time is not null group by year(h.crawl_time), quarter(h.crawl_time) order by year(h.crawl_time), quarter(h.crawl_time)", nativeQuery = true)
+    @Query(value = "select period, count(*) as total, avg(total_price) as avg_total_price from (select concat(year(crawl_time), ' Q', quarter(crawl_time)) as period, year(crawl_time) as year_value, quarter(crawl_time) as quarter_value, total_price from houses_house where city_id = :cityId and crawl_time is not null) trend_source group by period, year_value, quarter_value order by year_value, quarter_value", nativeQuery = true)
     List<Object[]> trendRowsByCity(@Param("cityId") Long cityId);
 
-    @Query(value = "select c.name, concat(year(h.crawl_time), ' Q', quarter(h.crawl_time)) as period, count(*) as total, avg(h.total_price) as avg_total_price from houses_house h join houses_city c on c.id = h.city_id join (select city_id from houses_house group by city_id order by count(*) desc limit 5) top_city on top_city.city_id = h.city_id where h.crawl_time is not null group by c.name, year(h.crawl_time), quarter(h.crawl_time) order by c.name, year(h.crawl_time), quarter(h.crawl_time)", nativeQuery = true)
+    @Query(value = "select city_name, period, count(*) as total, avg(total_price) as avg_total_price from (select c.name as city_name, concat(year(h.crawl_time), ' Q', quarter(h.crawl_time)) as period, year(h.crawl_time) as year_value, quarter(h.crawl_time) as quarter_value, h.total_price from houses_house h join houses_city c on c.id = h.city_id join (select city_id from houses_house group by city_id order by count(*) desc limit 5) top_city on top_city.city_id = h.city_id where h.crawl_time is not null) trend_source group by city_name, period, year_value, quarter_value order by city_name, year_value, quarter_value", nativeQuery = true)
     List<Object[]> cityTrendRows();
 
     @Query("select h from House h join fetch h.city join fetch h.district where h.longitude is not null and h.latitude is not null order by h.crawlTime desc, h.id desc")
