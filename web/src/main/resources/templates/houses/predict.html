@@ -20,6 +20,7 @@
     </div>
 </nav>
 <main class="page">
+    <script id="city-districts-data" type="application/json" th:utext="${cityDistrictsJson}">[]</script>
     <header class="page-heading">
         <h1>房价预测</h1>
         <p>输入房源特征后，系统会按区域均价和面积估算总价，并给出参考对比。</p>
@@ -30,14 +31,16 @@
         <form id="predict-form" class="form-row">
             <label>
                 城市
-                <select name="city">
+                <select id="city-select" name="city">
                     <option value="">未选择</option>
                     <option th:each="city : ${cities}" th:value="${city.name}" th:text="${city.name}">济南</option>
                 </select>
             </label>
             <label>
                 区县
-                <input name="district" placeholder="例如 历下区">
+                <select id="district-select" name="district">
+                    <option value="">请先选择城市</option>
+                </select>
             </label>
             <label>
                 面积
@@ -118,6 +121,27 @@
 </main>
 <script>
 let predictComparisonChart = null;
+const cityDistrictRows = JSON.parse(document.getElementById("city-districts-data")?.textContent || "[]");
+const citySelect = document.getElementById("city-select");
+const districtSelect = document.getElementById("district-select");
+
+function refreshDistrictOptions() {
+    if (!citySelect || !districtSelect) {
+        return;
+    }
+    const cityName = citySelect.value;
+    const currentValue = districtSelect.value;
+    const row = cityDistrictRows.find((item) => item.name === cityName);
+    const districts = row?.districts || [];
+    districtSelect.innerHTML = "";
+    districtSelect.appendChild(new Option(districts.length ? "未选择" : "请先选择城市", ""));
+    districts.forEach((districtName) => {
+        districtSelect.appendChild(new Option(districtName, districtName));
+    });
+    if (districts.includes(currentValue)) {
+        districtSelect.value = currentValue;
+    }
+}
 
 function renderPredictComparison(rows) {
     const element = document.getElementById("predict-comparison-chart");
@@ -145,6 +169,9 @@ function renderPredictComparison(rows) {
         }],
     });
 }
+
+citySelect?.addEventListener("change", refreshDistrictOptions);
+refreshDistrictOptions();
 
 document.getElementById("predict-form").addEventListener("submit", async (event) => {
     event.preventDefault();

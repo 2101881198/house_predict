@@ -1,7 +1,9 @@
 package com.example.housepredict.controller;
 
+import com.example.housepredict.entity.District;
 import com.example.housepredict.dto.HouseQuery;
 import com.example.housepredict.repository.CityRepository;
+import com.example.housepredict.repository.DistrictRepository;
 import com.example.housepredict.repository.HouseRepository;
 import com.example.housepredict.repository.PredictResultRepository;
 import com.example.housepredict.service.AnalysisService;
@@ -23,14 +25,16 @@ public class PageController {
     private final HouseService houseService;
     private final HouseRepository houseRepository;
     private final CityRepository cityRepository;
+    private final DistrictRepository districtRepository;
     private final PredictResultRepository predictResultRepository;
     private final ObjectMapper objectMapper;
 
-    public PageController(AnalysisService analysisService, HouseService houseService, HouseRepository houseRepository, CityRepository cityRepository, PredictResultRepository predictResultRepository, ObjectMapper objectMapper) {
+    public PageController(AnalysisService analysisService, HouseService houseService, HouseRepository houseRepository, CityRepository cityRepository, DistrictRepository districtRepository, PredictResultRepository predictResultRepository, ObjectMapper objectMapper) {
         this.analysisService = analysisService;
         this.houseService = houseService;
         this.houseRepository = houseRepository;
         this.cityRepository = cityRepository;
+        this.districtRepository = districtRepository;
         this.predictResultRepository = predictResultRepository;
         this.objectMapper = objectMapper;
     }
@@ -130,7 +134,16 @@ public class PageController {
 
     @GetMapping("/predict/")
     public String predict(Model model) {
-        model.addAttribute("cities", cityRepository.findAll());
+        var cities = cityRepository.findAll();
+        var cityDistricts = cities.stream()
+                .map(city -> Map.of(
+                        "name", city.getName(),
+                        "districts", districtRepository.findByCityOrderByName(city).stream()
+                                .map(District::getName)
+                                .toList()))
+                .toList();
+        model.addAttribute("cities", cities);
+        model.addAttribute("cityDistrictsJson", toJson(cityDistricts));
         model.addAttribute("recentPredictions", predictResultRepository.findByOrderByPredictTimeDesc(PageRequest.of(0, 10)));
         return "houses/predict";
     }
