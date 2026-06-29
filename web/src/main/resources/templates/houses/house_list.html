@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>房源列表</title>
+    <link rel="stylesheet" href="/houses/css/app.css">
+</head>
+<body>
+<nav>
+    <a href="/">首页</a>
+    <a href="/province/">省级分析</a>
+    <a href="/houses/">房源列表</a>
+    <a href="/predict/">价格预测</a>
+</nav>
+<main>
+    <h1>房源列表</h1>
+    <form method="get" action="/houses/">
+        <input name="city" placeholder="城市">
+        <input name="district" placeholder="区县">
+        <input name="min_price" placeholder="最低总价">
+        <input name="max_price" placeholder="最高总价">
+        <button type="submit">筛选</button>
+    </form>
+    <table>
+        <thead><tr><th>标题</th><th>城市</th><th>区县</th><th>总价</th><th>面积</th><th>户型</th></tr></thead>
+        <tbody>
+        <tr th:each="house : ${page.content}">
+            <td><a th:href="@{'/houses/' + ${house.id} + '/'}" th:text="${house.title}">标题</a></td>
+            <td th:text="${house.city.name}">城市</td>
+            <td th:text="${house.district.name}">区县</td>
+            <td th:text="${house.totalPrice}">0</td>
+            <td th:text="${house.area}">0</td>
+            <td th:text="${house.roomType}">户型</td>
+        </tr>
+        </tbody>
+    </table>
+    <p>第 <span th:text="${page.number + 1}">1</span> 页，共 <span th:text="${page.totalPages}">1</span> 页</p>
+</main>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>价格预测</title>
+    <link rel="stylesheet" href="/houses/css/app.css">
+</head>
+<body>
+<nav>
+    <a href="/">首页</a>
+    <a href="/province/">省级分析</a>
+    <a href="/houses/">房源列表</a>
+    <a href="/predict/">价格预测</a>
+</nav>
+<main>
+    <h1>房价预测</h1>
+    <form id="predict-form">
+        <input name="city" placeholder="城市，例如济南">
+        <input name="district" placeholder="区县，例如历下区">
+        <input name="area" placeholder="面积">
+        <input name="room_type" placeholder="户型">
+        <input name="floor" placeholder="楼层">
+        <input name="direction" placeholder="朝向">
+        <input name="decoration" placeholder="装修">
+        <input name="build_year" placeholder="建造年份">
+        <button type="submit">预测</button>
+    </form>
+    <pre id="predict-result"></pre>
+    <h2>最近预测</h2>
+    <table>
+        <thead><tr><th>模型</th><th>预测总价</th><th>预测单价</th><th>时间</th></tr></thead>
+        <tbody>
+        <tr th:each="item : ${recentPredictions}">
+            <td th:text="${item.modelName}">模型</td>
+            <td th:text="${item.predictedPrice}">0</td>
+            <td th:text="${item.predictedUnitPrice}">0</td>
+            <td th:text="${item.predictTime}">时间</td>
+        </tr>
+        </tbody>
+    </table>
+</main>
+<script>
+document.getElementById('predict-form').addEventListener('submit', async function (event) {
+    event.preventDefault();
+    const body = Object.fromEntries(new FormData(event.target).entries());
+    const response = await fetch('/api/predict/price/', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(body)
+    });
+    document.getElementById('predict-result').textContent = JSON.stringify(await response.json(), null, 2);
+});
+</script>
+</body>
+</html>

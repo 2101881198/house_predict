@@ -1,121 +1,113 @@
 # 智慧房源探索平台
 
-这是一个基于 Django + MySQL 的智慧房源探索平台课程项目原型，覆盖房源数据导入、清洗、存储、统计分析、价格预测和可视化展示等功能。
+这是一个智慧房源探索平台课程项目，覆盖房源数据存储、统计分析、价格预测和可视化展示等功能。
 
-## 主要功能
+当前 `web` 目录已经改写为 Spring Boot + MySQL 项目。原来的 Django 路由表方式已改为 Spring Boot 常见的 Controller 注解方式，例如：
 
-- 使用 MySQL 存储城市、区域、房源、爬取任务、分析结果和预测记录。
-- 支持导入老师提供的 `house_clean.csv` 房源数据，也内置山东省示例房源数据。
-- 支持房源数据清洗，包括字段标准化、无效记录过滤和来源 URL 去重。
-- 提供首页看板、省级地图分析、城市区县地图分析、房源列表、房源详情和价格预测页面。
-- 提供 Django Admin 后台，用于管理基础数据、房源、爬取任务、分析结果和预测记录。
-- 提供公开 API，用于房源查询、统计分析和价格预测。
+```java
+@GetMapping("/api/houses/")
+public ApiResponse<Map<String, Object>> houses(...) {
+    ...
+}
+```
+
+## Web 项目结构
+
+```text
+web/
+  pom.xml
+  src/main/java/com/example/housepredict/
+    controller/     页面和 API 请求入口
+    service/        业务逻辑
+    repository/     JPA 数据访问
+    entity/         数据库表映射
+    dto/            请求和响应对象
+  src/main/resources/
+    application.yml
+    templates/      Thymeleaf 页面
+    static/         CSS、JS、地图静态资源
+```
 
 ## 环境要求
 
-- 已安装 Python。
-- 已安装并启动 MySQL。
-- `mysql` 命令已加入系统 `PATH`。
-- 数据库用户需要具备创建或使用项目数据库的权限。如果不是 `root` 用户，需要提前配置好 MySQL 授权。
+- Java 17
+- Maven
+- MySQL
 
-## 安装与运行
+当前电脑没有 Java/Maven 环境，所以本次改写没有在本机编译运行。
 
-在项目根目录执行以下命令：
+## 运行
 
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-copy .env.example .env
-```
-
-然后编辑 `.env` 文件，填写你的 MySQL 用户名、密码、主机、端口和数据库名。
-
-创建数据库：
-
-```powershell
-Get-Content scripts/sql/create_database.sql | mysql -u root -p
-```
-
-如果你使用的是 `cmd.exe`，也可以这样执行：
-
-```cmd
-mysql -u root -p < scripts\sql\create_database.sql
-```
-
-初始化 Django 项目：
-
-```powershell
+```bash
 cd web
-python manage.py makemigrations
-python manage.py migrate
-python manage.py import_house_csv
-python manage.py generate_analysis
-python manage.py train_price_model
-python manage.py createsuperuser
-python manage.py runserver
+mvn spring-boot:run
 ```
 
-如果没有 `house_clean.csv`，可以改用内置演示数据：
-
-```powershell
-python manage.py seed_demo_data
-```
-
-如果想先快速测试导入流程，可以只导入前 100 条：
-
-```powershell
-python manage.py import_house_csv --limit 100
-```
-
-服务启动后，在浏览器打开：
+默认访问地址：
 
 [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
+
+## 数据库配置
+
+配置文件：
+
+```text
+web/src/main/resources/application.yml
+```
+
+支持这些环境变量：
+
+```text
+MYSQL_HOST
+MYSQL_PORT
+MYSQL_DATABASE
+MYSQL_USER
+MYSQL_PASSWORD
+```
+
+默认数据库名是 `house_predict`。JPA 表名尽量沿用原 Django 项目的默认表名，例如 `houses_house`、`houses_city`、`houses_district`，方便复用已有 MySQL 数据。
+
+## 演示数据
+
+启动时自动插入少量演示数据：
+
+```bash
+SEED_DEMO_DATA=true mvn spring-boot:run
+```
+
+或启动后调用演示爬取任务接口：
+
+```bash
+curl -X POST "http://127.0.0.1:8000/api/admin/crawl-tasks/" \
+  -H "Content-Type: application/json" \
+  -d '{"target_city":"济南","page_count":1}'
+```
 
 ## 页面入口
 
 - 首页看板：`/`
 - 省级分析：`/province/`
-- 城市分析：`/cities/<城市ID>/`
+- 城市分析：`/cities/{城市ID}/`
 - 房源列表：`/houses/`
-- 房源详情：`/houses/<房源ID>/`
+- 房源详情：`/houses/{房源ID}/`
 - 价格预测：`/predict/`
-- 后台管理：`/admin/`
-
-## 示例爬虫
-
-项目提供了课程演示用的爬虫流程：
-
-```powershell
-cd web
-python manage.py run_demo_crawler --city 济南 --pages 1
-```
-
-当前版本不会抓取真实网站，而是创建爬取任务记录，并导入项目内置的山东省示例房源数据，便于课程验收和功能演示。
 
 ## 常用 API
 
 - 房源列表：`/api/houses/`
-- 房源详情：`/api/houses/<房源ID>/`
+- 房源详情：`/api/houses/{房源ID}/`
 - 总览统计：`/api/statistics/overview/`
 - 省级统计：`/api/statistics/province/`
-- 城市统计：`/api/statistics/city/`
+- 城市统计：`/api/statistics/city/?city_id=1`
 - 价格预测：`/api/predict/price/`
 - 爬取任务管理：`/api/admin/crawl-tasks/`
 
-其中爬取任务管理接口和 Django Admin 需要登录管理员账号。
+## 预测功能说明
 
-## 验证命令
+原 Django 版本使用 Python/scikit-learn 的 `joblib` 模型。Spring Boot 版本目前改为规则估算：
 
-在 `web` 目录执行：
-
-```powershell
-python manage.py check
-pytest houses/tests -q
+```text
+预测总价 = 区县/城市/整体平均单价 * 面积 / 10000
 ```
 
-## Windows 安装 mysqlclient 失败怎么办
-
-如果执行 `pip install -r requirements.txt` 时安装 `mysqlclient` 失败，建议优先使用带有兼容预编译 wheel 的 Python 版本。
-
-如果仍然失败，可以安装 Microsoft C++ Build Tools，并安装匹配的 MySQL 或 MariaDB 客户端开发库；也可以安装与你的 Python 版本和 Windows 架构匹配的 `mysqlclient` wheel。
+后续如果需要机器学习预测，建议让 Spring Boot 调用独立 Python 推理服务，或者把模型导出为 PMML 后在 Java 中加载。

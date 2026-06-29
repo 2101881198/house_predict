@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>省级分析</title>
+    <link rel="stylesheet" href="/houses/css/app.css">
+</head>
+<body>
+<nav>
+    <a href="/">首页</a>
+    <a href="/province/">省级分析</a>
+    <a href="/houses/">房源列表</a>
+    <a href="/predict/">价格预测</a>
+</nav>
+<main>
+    <h1>山东省房源分析</h1>
+    <table>
+        <thead><tr><th>城市</th><th>数量</th><th>平均总价</th><th>平均单价</th></tr></thead>
+        <tbody>
+        <tr th:each="row : ${stats.cities}">
+            <td th:text="${row.city}">城市</td>
+            <td th:text="${row.count}">0</td>
+            <td th:text="${row.avg_total_price}">0</td>
+            <td th:text="${row.avg_unit_price}">0</td>
+        </tr>
+        </tbody>
+    </table>
+</main>
+</body>
+</html>

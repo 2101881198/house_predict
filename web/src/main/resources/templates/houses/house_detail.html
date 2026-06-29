@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title th:text="${house.title}">房源详情</title>
+    <link rel="stylesheet" href="/houses/css/app.css">
+</head>
+<body>
+<nav>
+    <a href="/">首页</a>
+    <a href="/province/">省级分析</a>
+    <a href="/houses/">房源列表</a>
+    <a href="/predict/">价格预测</a>
+</nav>
+<main>
+    <h1 th:text="${house.title}">房源标题</h1>
+    <p><span th:text="${house.city.name}">城市</span> / <span th:text="${house.district.name}">区县</span></p>
+    <p>总价：<strong th:text="${house.totalPrice}">0</strong> 万</p>
+    <p>单价：<strong th:text="${house.unitPrice}">0</strong> 元/㎡</p>
+    <p>面积：<strong th:text="${house.area}">0</strong> ㎡</p>
+    <p>户型：<strong th:text="${house.roomType}">户型</strong></p>
+    <p>地址：<span th:text="${house.address}">地址</span></p>
+    <h2>同区县相似房源</h2>
+    <ul>
+        <li th:each="item : ${similarHouses}">
+            <a th:href="@{'/houses/' + ${item.id} + '/'}" th:text="${item.title}">相似房源</a>
+        </li>
+    </ul>
+</main>
+</body>
+</html>
