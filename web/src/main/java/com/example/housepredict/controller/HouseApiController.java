@@ -56,12 +56,12 @@ public class HouseApiController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10", name = "page_size") int pageSize) {
         HouseQuery query = new HouseQuery(city, district, roomType, decoration, minPrice, maxPrice, minArea, maxArea, sort, page, pageSize);
-        var page = houseService.findHouses(query, 100);
+        var housePage = houseService.findHouses(query, 100);
         Map<String, Object> data = new LinkedHashMap<>();
-        data.put("total", page.getTotalElements());
-        data.put("page", page.getNumber() + 1);
-        data.put("page_size", page.getSize());
-        data.put("items", page.getContent().stream().map(houseMapper::toMap).toList());
+        data.put("total", housePage.getTotalElements());
+        data.put("page", housePage.getNumber() + 1);
+        data.put("page_size", housePage.getSize());
+        data.put("items", housePage.getContent().stream().map(houseMapper::toMap).toList());
         return ApiResponse.ok(data);
     }
 
