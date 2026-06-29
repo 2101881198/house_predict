@@ -32,6 +32,48 @@ public interface HouseRepository extends JpaRepository<House, Long>, JpaSpecific
     @Query("select avg(h.unitPrice) from House h")
     BigDecimal avgUnitPrice();
 
+    @Query("select avg(h.totalPrice) from House h")
+    BigDecimal avgTotalPrice();
+
+    @Query("select count(h) from House h where (:cityId is null or h.city.id = :cityId) and (:minPrice is null or h.totalPrice >= :minPrice) and (:maxPrice is null or h.totalPrice < :maxPrice)")
+    long countByPriceBucket(@Param("cityId") Long cityId, @Param("minPrice") BigDecimal minPrice, @Param("maxPrice") BigDecimal maxPrice);
+
+    @Query("select count(h) from House h where (:cityId is null or h.city.id = :cityId) and (:minArea is null or h.area >= :minArea) and (:maxArea is null or h.area < :maxArea)")
+    long countByAreaBucket(@Param("cityId") Long cityId, @Param("minArea") BigDecimal minArea, @Param("maxArea") BigDecimal maxArea);
+
+    @Query("select h.city.id, h.city.name, count(h), avg(h.totalPrice), avg(h.unitPrice), max(h.totalPrice), min(h.totalPrice) from House h group by h.city.id, h.city.name order by count(h) desc, h.city.name")
+    List<Object[]> cityDistributionRows();
+
+    @Query("select h.district.id, h.district.name, count(h), avg(h.totalPrice), avg(h.unitPrice) from House h where h.city.id = :cityId group by h.district.id, h.district.name order by count(h) desc, h.district.name")
+    List<Object[]> districtRowsByCity(@Param("cityId") Long cityId);
+
+    @Query("select h.city.name, h.district.name, count(h), avg(h.unitPrice) from House h group by h.city.name, h.district.name order by count(h) desc")
+    List<Object[]> hotDistrictRows(Pageable pageable);
+
+    @Query("select h.roomType, count(h) from House h where h.roomType <> '' group by h.roomType order by count(h) desc, h.roomType")
+    List<Object[]> roomTypeRows();
+
+    @Query("select h.roomType, count(h) from House h where h.city.id = :cityId and h.roomType <> '' group by h.roomType order by count(h) desc, h.roomType")
+    List<Object[]> roomTypeRowsByCity(@Param("cityId") Long cityId);
+
+    @Query("select h.decoration, count(h) from House h where h.decoration <> '' group by h.decoration order by count(h) desc, h.decoration")
+    List<Object[]> decorationRows();
+
+    @Query("select h.decoration, count(h) from House h where h.city.id = :cityId and h.decoration <> '' group by h.decoration order by count(h) desc, h.decoration")
+    List<Object[]> decorationRowsByCity(@Param("cityId") Long cityId);
+
+    @Query(value = "select concat(year(crawl_time), ' Q', quarter(crawl_time)) as period, count(*) as total, avg(total_price) as avg_total_price from houses_house where crawl_time is not null group by year(crawl_time), quarter(crawl_time) order by year(crawl_time), quarter(crawl_time)", nativeQuery = true)
+    List<Object[]> trendRows();
+
+    @Query(value = "select concat(year(h.crawl_time), ' Q', quarter(h.crawl_time)) as period, count(*) as total, avg(h.total_price) as avg_total_price from houses_house h where h.city_id = :cityId and h.crawl_time is not null group by year(h.crawl_time), quarter(h.crawl_time) order by year(h.crawl_time), quarter(h.crawl_time)", nativeQuery = true)
+    List<Object[]> trendRowsByCity(@Param("cityId") Long cityId);
+
+    @Query(value = "select c.name, concat(year(h.crawl_time), ' Q', quarter(h.crawl_time)) as period, count(*) as total, avg(h.total_price) as avg_total_price from houses_house h join houses_city c on c.id = h.city_id join (select city_id from houses_house group by city_id order by count(*) desc limit 5) top_city on top_city.city_id = h.city_id where h.crawl_time is not null group by c.name, year(h.crawl_time), quarter(h.crawl_time) order by c.name, year(h.crawl_time), quarter(h.crawl_time)", nativeQuery = true)
+    List<Object[]> cityTrendRows();
+
+    @Query("select h from House h join fetch h.city join fetch h.district where h.longitude is not null and h.latitude is not null order by h.crawlTime desc, h.id desc")
+    List<House> mapPointRows(Pageable pageable);
+
     @Query("select distinct h.roomType from House h where h.roomType <> '' order by h.roomType")
     List<String> findRoomTypes();
 }

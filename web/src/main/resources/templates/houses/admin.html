@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>管理后台</title>
+    <link rel="stylesheet" href="/houses/css/app.css">
+</head>
+<body>
+<nav class="topbar">
+    <time id="current-time" class="current-time" datetime=""></time>
+    <a href="/" class="brand">智慧房源探索平台</a>
+    <div class="nav-links" aria-label="主导航">
+        <a href="/">山东省总览</a>
+        <a href="/province/">城市对比</a>
+        <a href="/houses/">房源列表</a>
+        <a href="/predict/">价格预测</a>
+        <a href="/admin/">管理</a>
+    </div>
+</nav>
+<main class="page">
+    <header class="page-heading">
+        <h1>管理后台</h1>
+        <p>Spring Boot 版本没有 Django Admin，这里提供课程作业用的简易数据管理入口。</p>
+    </header>
+
+    <section class="grid stats-grid">
+        <div class="panel">
+            <h3>城市数量</h3>
+            <div class="metric" th:text="${cityCount}">0</div>
+            <div class="muted">个</div>
+        </div>
+        <div class="panel">
+            <h3>房源数量</h3>
+            <div class="metric" th:text="${houseCount}">0</div>
+            <div class="muted">套</div>
+        </div>
+        <div class="panel">
+            <h3>接口入口</h3>
+            <p><a href="/api/admin/crawl-tasks/">爬取任务 API</a></p>
+            <p><a href="/api/houses/">房源 API</a></p>
+        </div>
+    </section>
+
+    <section class="panel" style="margin-top: 16px;">
+        <h2>最近爬取任务</h2>
+        <table class="table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>任务</th>
+                <th>城市</th>
+                <th>状态</th>
+                <th>成功</th>
+                <th>失败</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="task : ${crawlTasks}">
+                <td th:text="${task.id}">1</td>
+                <td th:text="${task.taskName}">任务</td>
+                <td th:text="${task.targetCity}">城市</td>
+                <td th:text="${task.status}">状态</td>
+                <td th:text="${task.successCount}">0</td>
+                <td th:text="${task.failCount}">0</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(crawlTasks)}">
+                <td colspan="6" class="muted">暂无爬取任务</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="panel" style="margin-top: 16px;">
+        <h2>最近预测记录</h2>
+        <table class="table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>模型</th>
+                <th>预测总价</th>
+                <th>预测单价</th>
+                <th>时间</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="item : ${recentPredictions}">
+                <td th:text="${item.id}">1</td>
+                <td th:text="${item.modelName}">模型</td>
+                <td th:text="${item.predictedPrice}">0</td>
+                <td th:text="${item.predictedUnitPrice}">0</td>
+                <td th:text="${item.predictTime}">时间</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(recentPredictions)}">
+                <td colspan="5" class="muted">暂无预测记录</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+<script src="/houses/js/time.js"></script>
+</body>
+</html>
