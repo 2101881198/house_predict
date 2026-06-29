@@ -31,6 +31,12 @@ web/python_predict_service/models/price_model.joblib
 uvicorn app:app --host 127.0.0.1 --port 9000
 ```
 
+如果 Windows/conda 环境里 `uvicorn` 启动后没有任何输出，使用内置 HTTP 服务：
+
+```bash
+python server.py
+```
+
 健康检查：
 
 ```bash
