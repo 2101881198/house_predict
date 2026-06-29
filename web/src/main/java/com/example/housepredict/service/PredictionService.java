@@ -74,10 +74,10 @@ public class PredictionService {
                 return null;
             }
             return objectMapper.readValue(response.body(), PredictResponse.class);
-        } catch (JsonProcessingException | InterruptedException | IOException | IllegalArgumentException ex) {
-            if (ex instanceof InterruptedException) {
-                Thread.currentThread().interrupt();
-            }
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            return null;
+        } catch (IOException | IllegalArgumentException ex) {
             return null;
         }
     }
