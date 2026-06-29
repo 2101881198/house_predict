@@ -84,13 +84,54 @@ public ApiResponse<Map<String, Object>> houses(...) {
 
 ## 预测功能说明
 
-原 Django 版本使用 Python/scikit-learn 训练 `joblib` 模型。Spring Boot 版本目前改为规则估算：
+预测功能现在拆成两层：
+
+- Spring Boot 继续提供页面和 `/api/predict/price/`。
+- 独立 Python 服务负责机器学习模型预测。
+
+Python 服务目录：
+
+```text
+web/python_predict_service/
+```
+
+训练模型：
+
+```bash
+cd web/python_predict_service
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+MYSQL_USER=root MYSQL_PASSWORD=你的密码 python train_model.py
+```
+
+启动 Python 预测服务：
+
+```bash
+uvicorn app:app --host 127.0.0.1 --port 9000
+```
+
+启动 Spring Boot：
+
+```bash
+cd web
+mvn spring-boot:run
+```
+
+Spring Boot 默认调用：
+
+```text
+http://127.0.0.1:9000/predict
+```
+
+如果要改 Python 服务地址：
+
+```bash
+PYTHON_PREDICT_URL=http://127.0.0.1:9000/predict mvn spring-boot:run
+```
+
+当 Python 服务不可用时，Spring Boot 会自动回退为规则估算：
 
 ```text
 预测总价 = 区县/城市/整体平均单价 * 面积 / 10000
 ```
-
-如果后续要恢复机器学习预测，建议有两种方式：
-
-1. Java 后端调用一个 Python 推理服务。
-2. 将模型导出为 Java 可加载格式，例如 PMML，再用 JPMML 读取。

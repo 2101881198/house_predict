@@ -7,12 +7,19 @@ import com.example.housepredict.repository.HouseRepository;
 import com.example.housepredict.repository.PredictResultRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -23,28 +30,99 @@ public class PredictionService {
     private final HouseRepository houseRepository;
     private final PredictResultRepository predictResultRepository;
     private final ObjectMapper objectMapper;
+    private final HttpClient httpClient;
+    private final String pythonPredictUrl;
 
-    public PredictionService(HouseRepository houseRepository, PredictResultRepository predictResultRepository, ObjectMapper objectMapper) {
+    public PredictionService(
+            HouseRepository houseRepository,
+            PredictResultRepository predictResultRepository,
+            ObjectMapper objectMapper,
+            @Value("${app.prediction.python-url}") String pythonPredictUrl) {
         this.houseRepository = houseRepository;
         this.predictResultRepository = predictResultRepository;
         this.objectMapper = objectMapper;
+        this.pythonPredictUrl = pythonPredictUrl;
+        this.httpClient = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(2))
+                .build();
     }
 
     public PredictResponse predict(PredictRequest request) {
+        PredictResponse pythonResponse = callPythonService(request);
+        if (pythonResponse != null) {
+            PredictResponse response = withComparisonRows(request, pythonResponse);
+            saveResult(request, response);
+            return response;
+        }
+
+        PredictResponse response = rulePredict(request, "Python预测服务不可用，已回退为 Java 区域均价估算");
+        saveResult(request, response);
+        return response;
+    }
+
+    private PredictResponse callPythonService(PredictRequest request) {
+        try {
+            String body = objectMapper.writeValueAsString(request);
+            HttpRequest httpRequest = HttpRequest.newBuilder()
+                    .uri(URI.create(pythonPredictUrl))
+                    .timeout(Duration.ofSeconds(8))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(body))
+                    .build();
+            HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                return null;
+            }
+            return objectMapper.readValue(response.body(), PredictResponse.class);
+        } catch (JsonProcessingException | InterruptedException | IOException | IllegalArgumentException ex) {
+            if (ex instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+            return null;
+        }
+    }
+
+    private PredictResponse withComparisonRows(PredictRequest request, PredictResponse response) {
+        BigDecimal area = normalizeArea(request.area());
+        List<Map<String, Object>> comparison = new ArrayList<>();
+        comparison.add(row("Python预测总价", response.predictedPrice()));
+        if (response.comparison() != null) {
+            for (Map<String, Object> row : response.comparison()) {
+                Object label = row.get("label");
+                if (!"预测总价".equals(label) && !"Python预测总价".equals(label)) {
+                    comparison.add(row);
+                }
+            }
+        }
+        if (hasText(request.city()) && hasText(request.district())) {
+            addAverageRow(comparison, "区域均价估算", houseRepository.avgUnitPriceByCityAndDistrictName(request.city(), request.district()), area);
+        }
+        if (hasText(request.city())) {
+            addAverageRow(comparison, "城市均价估算", houseRepository.avgUnitPriceByCityName(request.city()), area);
+        }
+        addAverageRow(comparison, "整体均价估算", houseRepository.avgUnitPrice(), area);
+        return new PredictResponse(
+                response.predictedPrice(),
+                response.predictedUnitPrice(),
+                response.modelName(),
+                response.note(),
+                comparison
+        );
+    }
+
+    private PredictResponse rulePredict(PredictRequest request, String note) {
         BigDecimal area = normalizeArea(request.area());
         BigDecimal unitPrice = averageUnitPrice(request.city(), request.district());
         BigDecimal predictedPrice = unitPrice.multiply(area).divide(BigDecimal.valueOf(10000), 2, RoundingMode.HALF_UP);
         BigDecimal predictedUnitPrice = unitPrice.setScale(2, RoundingMode.HALF_UP);
 
-        PredictResponse response = new PredictResponse(
+        return new PredictResponse(
                 predictedPrice,
                 predictedUnitPrice,
                 "规则估算",
-                "当前 Spring Boot 版本使用区域均价估算；如需机器学习模型，可后续接入 JPMML、Tribuo 或独立 Python 推理服务。",
+                note,
                 comparisonRows(request.city(), request.district(), area, predictedPrice)
         );
-        saveResult(request, response);
-        return response;
     }
 
     private void saveResult(PredictRequest request, PredictResponse response) {

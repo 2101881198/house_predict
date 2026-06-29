@@ -25,3 +25,5 @@ app:
   admin:
     username: ${ADMIN_USERNAME:admin}
     password: ${ADMIN_PASSWORD:admin123}
+  prediction:
+    python-url: ${PYTHON_PREDICT_URL:http://127.0.0.1:9000/predict}

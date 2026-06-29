@@ -104,10 +104,32 @@ curl -X POST "http://127.0.0.1:8000/api/admin/crawl-tasks/" \
 
 ## 预测功能说明
 
-原 Django 版本使用 Python/scikit-learn 的 `joblib` 模型。Spring Boot 版本目前改为规则估算：
+预测功能现在使用独立 Python 服务：
+
+```bash
+cd web/python_predict_service
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+MYSQL_USER=root MYSQL_PASSWORD=你的密码 python train_model.py
+uvicorn app:app --host 127.0.0.1 --port 9000
+```
+
+然后启动 Spring Boot：
+
+```bash
+cd web
+mvn spring-boot:run
+```
+
+Spring Boot 的 `/api/predict/price/` 会优先调用：
+
+```text
+http://127.0.0.1:9000/predict
+```
+
+如果 Python 服务不可用，会自动回退为 Java 规则估算：
 
 ```text
 预测总价 = 区县/城市/整体平均单价 * 面积 / 10000
 ```
-
-后续如果需要机器学习预测，建议让 Spring Boot 调用独立 Python 推理服务，或者把模型导出为 PMML 后在 Java 中加载。
