@@ -25,6 +25,13 @@
         <p>Spring Boot 版本没有 Django Admin，这里提供课程作业用的简易数据管理入口。</p>
     </header>
 
+    <section class="panel" th:if="${message != null}" style="margin-bottom: 16px;">
+        <strong th:text="${message}">操作成功</strong>
+    </section>
+    <section class="panel" th:if="${error != null}" style="margin-bottom: 16px; border-color: var(--danger);">
+        <strong style="color: var(--danger);" th:text="${error}">操作失败</strong>
+    </section>
+
     <section class="grid stats-grid">
         <div class="panel">
             <h3>城市数量</h3>
@@ -41,6 +48,116 @@
             <p><a href="/api/admin/crawl-tasks/">爬取任务 API</a></p>
             <p><a href="/api/houses/">房源 API</a></p>
         </div>
+    </section>
+
+    <section class="panel" style="margin-top: 16px;">
+        <h2>添加房屋信息</h2>
+        <form class="form-row" method="post" action="/admin/houses/">
+            <label>
+                标题
+                <input name="title" required placeholder="例如 阳光花园">
+            </label>
+            <label>
+                城市
+                <select name="city" required>
+                    <option value="">请选择城市</option>
+                    <option th:each="city : ${cities}" th:value="${city.name}" th:text="${city.name}">济南</option>
+                </select>
+            </label>
+            <label>
+                区县
+                <input name="district" required placeholder="例如 历下区">
+            </label>
+            <label>
+                总价（万）
+                <input name="total_price" type="number" step="0.01" min="0.01" required>
+            </label>
+            <label>
+                面积（㎡）
+                <input name="area" type="number" step="0.01" min="0.01" required>
+            </label>
+            <label>
+                户型
+                <input name="room_type" placeholder="例如 3室2厅1厨1卫">
+            </label>
+            <label>
+                楼层
+                <input name="floor" placeholder="例如 中楼层">
+            </label>
+            <label>
+                朝向
+                <input name="direction" placeholder="例如 南北">
+            </label>
+            <label>
+                装修
+                <input name="decoration" placeholder="例如 精装">
+            </label>
+            <label>
+                建造年份
+                <input name="build_year" type="number" min="1900" max="2100">
+            </label>
+            <label>
+                地址
+                <input name="address" placeholder="不填时自动生成">
+            </label>
+            <button type="submit">添加房源</button>
+        </form>
+    </section>
+
+    <section class="panel" style="margin-top: 16px;">
+        <h2>创建演示爬取任务</h2>
+        <form class="form-row" method="post" action="/admin/crawl-tasks/">
+            <label>
+                城市
+                <select name="target_city">
+                    <option th:each="city : ${cities}" th:value="${city.name}" th:text="${city.name}">济南</option>
+                </select>
+            </label>
+            <label>
+                区县
+                <input name="target_district" placeholder="可留空">
+            </label>
+            <label>
+                页数
+                <input name="page_count" type="number" min="1" max="20" value="1">
+            </label>
+            <button type="submit">创建任务</button>
+        </form>
+    </section>
+
+    <section class="panel" style="margin-top: 16px;">
+        <h2>最近添加房源</h2>
+        <table class="table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>标题</th>
+                <th>城市</th>
+                <th>区县</th>
+                <th>总价</th>
+                <th>面积</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="house : ${recentHouses}">
+                <td th:text="${house.id}">1</td>
+                <td><a th:href="@{/houses/{id}/(id=${house.id})}" th:text="${house.title}">房源</a></td>
+                <td th:text="${house.city.name}">济南</td>
+                <td th:text="${house.district.name}">历下区</td>
+                <td><span th:text="${house.totalPrice}">0</span> 万</td>
+                <td><span th:text="${house.area}">0</span> ㎡</td>
+                <td>
+                    <form method="post" th:action="@{/admin/houses/{id}/delete(id=${house.id})}" onsubmit="return confirm('确定删除这条房源吗？');">
+                        <button type="submit">删除</button>
+                    </form>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(recentHouses)}">
+                <td colspan="7" class="muted">暂无房源</td>
+            </tr>
+            </tbody>
+        </table>
     </section>
 
     <section class="panel" style="margin-top: 16px;">

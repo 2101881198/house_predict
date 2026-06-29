@@ -27,6 +27,8 @@ public class AdminPageController {
     public String admin(Model model) {
         model.addAttribute("cityCount", cityRepository.count());
         model.addAttribute("houseCount", houseRepository.count());
+        model.addAttribute("cities", cityRepository.findAll());
+        model.addAttribute("recentHouses", houseRepository.findTop20ByOrderByCreatedAtDescIdDesc());
         model.addAttribute("crawlTasks", crawlTaskRepository.findTop100ByOrderByCreatedAtDesc());
         model.addAttribute("recentPredictions", predictResultRepository.findByOrderByPredictTimeDesc(PageRequest.of(0, 10)));
         return "houses/admin";

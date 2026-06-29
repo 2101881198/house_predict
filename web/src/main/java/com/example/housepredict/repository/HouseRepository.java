@@ -20,6 +20,9 @@ public interface HouseRepository extends JpaRepository<House, Long>, JpaSpecific
 
     List<House> findByDistrictAndIdNotOrderByCrawlTimeDescIdDesc(District district, Long id, Pageable pageable);
 
+    @EntityGraph(attributePaths = {"city", "district"})
+    List<House> findTop20ByOrderByCreatedAtDescIdDesc();
+
     @Query("select avg(h.unitPrice) from House h where h.district = :district")
     BigDecimal avgUnitPriceByDistrict(@Param("district") District district);
 
