@@ -2,30 +2,136 @@
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title th:text="${house.title}">房源详情</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
     <link rel="stylesheet" href="/houses/css/app.css">
 </head>
 <body>
-<nav>
-    <a href="/">首页</a>
-    <a href="/province/">省级分析</a>
-    <a href="/houses/">房源列表</a>
-    <a href="/predict/">价格预测</a>
+<nav class="topbar">
+    <time id="current-time" class="current-time" datetime=""></time>
+    <a href="/" class="brand">智慧房源探索平台</a>
+    <div class="nav-links" aria-label="主导航">
+        <a href="/">山东省总览</a>
+        <a href="/province/">城市对比</a>
+        <a href="/houses/">房源列表</a>
+        <a href="/predict/">价格预测</a>
+    </div>
 </nav>
-<main>
-    <h1 th:text="${house.title}">房源标题</h1>
-    <p><span th:text="${house.city.name}">城市</span> / <span th:text="${house.district.name}">区县</span></p>
-    <p>总价：<strong th:text="${house.totalPrice}">0</strong> 万</p>
-    <p>单价：<strong th:text="${house.unitPrice}">0</strong> 元/㎡</p>
-    <p>面积：<strong th:text="${house.area}">0</strong> ㎡</p>
-    <p>户型：<strong th:text="${house.roomType}">户型</strong></p>
-    <p>地址：<span th:text="${house.address}">地址</span></p>
-    <h2>同区县相似房源</h2>
-    <ul>
-        <li th:each="item : ${similarHouses}">
-            <a th:href="@{'/houses/' + ${item.id} + '/'}" th:text="${item.title}">相似房源</a>
-        </li>
-    </ul>
+<main class="page">
+    <section class="panel">
+        <div class="section-title-row">
+            <div>
+                <h1 th:text="${house.title}">房源标题</h1>
+                <p class="muted">
+                    <span th:text="${house.city.name}">城市</span>
+                    <span>/</span>
+                    <span th:text="${house.district.name}">区县</span>
+                    <span th:if="${house.community != null && !house.community.isBlank()}">/</span>
+                    <span th:if="${house.community != null && !house.community.isBlank()}" th:text="${house.community}">小区</span>
+                </p>
+            </div>
+            <a class="compare-link" href="/houses/">返回列表</a>
+        </div>
+
+        <div class="grid stats-grid">
+            <div>
+                <div class="muted">总价</div>
+                <div class="metric"><span th:text="${house.totalPrice}">0</span></div>
+                <div class="muted">万元</div>
+            </div>
+            <div>
+                <div class="muted">单价</div>
+                <div class="metric"><span th:text="${house.unitPrice}">0</span></div>
+                <div class="muted">元/㎡</div>
+            </div>
+            <div>
+                <div class="muted">面积</div>
+                <div class="metric"><span th:text="${house.area}">0</span></div>
+                <div class="muted">㎡</div>
+            </div>
+            <div>
+                <div class="muted">户型</div>
+                <div class="metric" style="font-size: 22px;" th:text="${house.roomType}">户型</div>
+                <div class="muted" th:text="${house.floor}">楼层</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="grid detail-layout">
+        <div class="panel">
+            <h2>房源信息</h2>
+            <table class="table">
+                <tbody>
+                <tr><th>小区</th><td th:text="${house.community ?: '-'}">-</td></tr>
+                <tr><th>楼层</th><td th:text="${house.floor ?: '-'}">-</td></tr>
+                <tr><th>朝向</th><td th:text="${house.direction ?: '-'}">-</td></tr>
+                <tr><th>装修</th><td th:text="${house.decoration ?: '-'}">-</td></tr>
+                <tr><th>建造年份</th><td th:text="${house.buildYear ?: '-'}">-</td></tr>
+                <tr><th>地址</th><td th:text="${house.address ?: '-'}">-</td></tr>
+                <tr><th>经纬度</th><td><span th:text="${house.longitude ?: '-'}">-</span> / <span th:text="${house.latitude ?: '-'}">-</span></td></tr>
+                <tr><th>采集时间</th><td th:text="${house.crawlTime ?: '-'}">-</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="panel">
+            <h2>区域价格对比</h2>
+            <div id="detail-price-chart" class="chart"></div>
+        </div>
+    </section>
+
+    <section class="panel" style="margin-top: 16px;">
+        <h2>周边配套</h2>
+        <p th:text="${house.surrounding ?: '-'}">-</p>
+    </section>
+
+    <section class="panel" style="margin-top: 16px;">
+        <h2>同区县相似房源</h2>
+        <table class="table">
+            <thead>
+            <tr>
+                <th>标题</th>
+                <th>总价</th>
+                <th>单价</th>
+                <th>面积</th>
+                <th>详情</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="item : ${similarHouses}">
+                <td th:text="${item.title}">标题</td>
+                <td><span th:text="${item.totalPrice}">0</span> 万元</td>
+                <td><span th:text="${item.unitPrice}">0</span> 元/㎡</td>
+                <td><span th:text="${item.area}">0</span> ㎡</td>
+                <td><a th:href="@{'/houses/' + ${item.id} + '/'}">查看</a></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(similarHouses)}">
+                <td colspan="5" class="muted">暂无数据</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
 </main>
+<script th:inline="javascript">
+    const detailChart = echarts.init(document.getElementById("detail-price-chart"));
+    detailChart.setOption({
+        tooltip: {trigger: "axis"},
+        grid: {left: 72, right: 24, top: 36, bottom: 44},
+        xAxis: {type: "category", data: ["本房源单价", "区县平均单价"]},
+        yAxis: {type: "value", name: "元/㎡"},
+        series: [{
+            name: "单价",
+            type: "bar",
+            data: [
+                [[${house.unitPrice}]],
+                [[${districtAvgUnitPrice == null ? 0 : districtAvgUnitPrice}]]
+            ],
+            itemStyle: {color: "#2563eb"},
+            label: {show: true, position: "top"}
+        }]
+    });
+    window.addEventListener("resize", () => detailChart.resize());
+</script>
+<script src="/houses/js/time.js"></script>
 </body>
 </html>
