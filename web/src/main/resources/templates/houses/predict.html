@@ -48,19 +48,31 @@
             </label>
             <label>
                 户型
-                <input name="room_type" type="text" value="两室一厅">
+                <select name="room_type">
+                    <option value="">未选择</option>
+                    <option th:each="roomType : ${roomTypes}" th:value="${roomType}" th:text="${roomType}" th:selected="${roomType == '两室一厅'}">两室一厅</option>
+                </select>
             </label>
             <label>
                 楼层
-                <input name="floor" type="text" value="中楼层">
+                <select name="floor">
+                    <option value="">未选择</option>
+                    <option th:each="floor : ${floors}" th:value="${floor}" th:text="${floor}" th:selected="${floor == '中楼层'}">中楼层</option>
+                </select>
             </label>
             <label>
                 朝向
-                <input name="direction" type="text" value="南北">
+                <select name="direction">
+                    <option value="">未选择</option>
+                    <option th:each="direction : ${directions}" th:value="${direction}" th:text="${direction}" th:selected="${direction == '南北'}">南北</option>
+                </select>
             </label>
             <label>
                 装修
-                <input name="decoration" type="text" value="精装">
+                <select name="decoration">
+                    <option value="">未选择</option>
+                    <option th:each="decoration : ${decorations}" th:value="${decoration}" th:text="${decoration}" th:selected="${decoration == '精装'}">精装</option>
+                </select>
             </label>
             <label>
                 建造年份

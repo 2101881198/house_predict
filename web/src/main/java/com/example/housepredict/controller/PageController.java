@@ -144,6 +144,10 @@ public class PageController {
                 .toList();
         model.addAttribute("cities", cities);
         model.addAttribute("cityDistrictsJson", toJson(cityDistricts));
+        model.addAttribute("roomTypes", houseRepository.findRoomTypes());
+        model.addAttribute("floors", houseRepository.findFloors());
+        model.addAttribute("directions", houseRepository.findDirections());
+        model.addAttribute("decorations", houseRepository.findDecorations());
         model.addAttribute("recentPredictions", predictResultRepository.findByOrderByPredictTimeDesc(PageRequest.of(0, 10)));
         return "houses/predict";
     }

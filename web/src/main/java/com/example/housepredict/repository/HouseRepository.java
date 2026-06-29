@@ -76,4 +76,13 @@ public interface HouseRepository extends JpaRepository<House, Long>, JpaSpecific
 
     @Query("select distinct h.roomType from House h where h.roomType <> '' order by h.roomType")
     List<String> findRoomTypes();
+
+    @Query("select distinct h.floor from House h where h.floor <> '' order by h.floor")
+    List<String> findFloors();
+
+    @Query("select distinct h.direction from House h where h.direction <> '' order by h.direction")
+    List<String> findDirections();
+
+    @Query("select distinct h.decoration from House h where h.decoration <> '' order by h.decoration")
+    List<String> findDecorations();
 }
