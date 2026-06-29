@@ -111,7 +111,7 @@ public class AnalysisService {
         return groupCount(scoped(cityId).stream().filter(h -> hasText(h.getDecoration())).toList(), House::getDecoration, "decoration");
     }
 
-    private List<Map<String, Object>> scoped(Long cityId) {
+    private List<House> scoped(Long cityId) {
         List<House> houses = houseRepository.findAll();
         if (cityId == null) {
             return houses;
