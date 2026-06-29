@@ -2,31 +2,116 @@
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
-    <title th:text="${stats.city.name} + '分析'">城市分析</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${stats.city.name + '市房源分析'}">城市房源分析</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
     <link rel="stylesheet" href="/houses/css/app.css">
 </head>
 <body>
-<nav>
-    <a href="/">首页</a>
-    <a href="/province/">省级分析</a>
-    <a href="/houses/">房源列表</a>
-    <a href="/predict/">价格预测</a>
+<nav class="topbar">
+    <time id="current-time" class="current-time" datetime=""></time>
+    <a href="/" class="brand">智慧房源探索平台</a>
+    <div class="nav-links" aria-label="主导航">
+        <a href="/">山东省总览</a>
+        <a href="/province/">城市对比</a>
+        <a href="/houses/">房源列表</a>
+        <a href="/predict/">价格预测</a>
+    </div>
 </nav>
-<main>
-    <h1 th:text="${stats.city.name} + '房源分析'">城市房源分析</h1>
-    <p>房源总数：<strong th:text="${stats.summary.total_houses}">0</strong></p>
-    <p>区县数量：<strong th:text="${stats.summary.district_count}">0</strong></p>
-    <table>
-        <thead><tr><th>区县</th><th>数量</th><th>平均总价</th><th>平均单价</th></tr></thead>
-        <tbody>
-        <tr th:each="row : ${stats.districts}">
-            <td th:text="${row.name}">区县</td>
-            <td th:text="${row.count}">0</td>
-            <td th:text="${row.avg_total_price}">0</td>
-            <td th:text="${row.avg_unit_price}">0</td>
-        </tr>
-        </tbody>
-    </table>
+<main class="page">
+    <script id="city-stats-data" type="application/json" th:utext="${statsJson}"></script>
+    <script id="city-price-buckets-data" type="application/json" th:utext="${priceBucketsJson}"></script>
+    <script id="city-area-buckets-data" type="application/json" th:utext="${areaBucketsJson}"></script>
+    <script id="city-room-types-data" type="application/json" th:utext="${roomTypesJson}"></script>
+    <script id="city-decoration-data" type="application/json" th:utext="${decorationsJson}"></script>
+    <script id="teacher-map-meta" type="application/json" th:utext="${mapMetaJson}"></script>
+
+    <header class="page-heading">
+        <h1 th:text="${stats.city.name + '市房源分析'}">城市房源分析</h1>
+        <p>从城市口径查看区县分布、价格结构、户型面积和装修情况。</p>
+    </header>
+
+    <section class="grid stats-grid">
+        <div class="panel">
+            <h3 th:text="${stats.city.name + '市房源总量'}">房源总量</h3>
+            <div class="metric" th:text="${stats.summary.total_houses}">0</div>
+            <div class="muted">套</div>
+        </div>
+        <div class="panel">
+            <h3>覆盖区县</h3>
+            <div class="metric" th:text="${stats.summary.district_count}">0</div>
+            <div class="muted">个</div>
+        </div>
+        <div class="panel">
+            <h3 th:text="${stats.city.name + '市平均总价'}">平均总价</h3>
+            <div class="metric" th:text="${stats.summary.avg_total_price}">0</div>
+            <div class="muted">万元</div>
+        </div>
+        <div class="panel">
+            <h3 th:text="${stats.city.name + '市平均单价'}">平均单价</h3>
+            <div class="metric" th:text="${stats.summary.avg_unit_price}">0</div>
+            <div class="muted">元/㎡</div>
+        </div>
+    </section>
+
+    <section class="panel map-panel" style="margin-top: 16px;">
+        <h2 th:text="${stats.city.name + '市区县房源地图'}">区县房源地图</h2>
+        <div id="city-map-chart" class="chart map-chart"></div>
+    </section>
+
+    <section class="grid dashboard-grid">
+        <div class="panel">
+            <h2 th:text="${stats.city.name + '市各区县房源分布'}">各区县房源分布</h2>
+            <div id="city-detail-chart" class="chart"></div>
+        </div>
+        <div class="panel">
+            <h2 th:text="${stats.city.name + '市价格走势'}">价格走势</h2>
+            <div id="city-trend-chart" class="chart"></div>
+        </div>
+        <div class="panel">
+            <h2 th:text="${stats.city.name + '市总价区间'}">总价区间</h2>
+            <div id="city-price-chart" class="chart"></div>
+        </div>
+        <div class="panel">
+            <h2 th:text="${stats.city.name + '市面积区间'}">面积区间</h2>
+            <div id="city-area-chart" class="chart"></div>
+        </div>
+        <div class="panel">
+            <h2 th:text="${stats.city.name + '市户型结构'}">户型结构</h2>
+            <div id="city-room-chart" class="chart"></div>
+        </div>
+        <div class="panel">
+            <h2 th:text="${stats.city.name + '市装修情况'}">装修情况</h2>
+            <div id="city-decoration-chart" class="chart"></div>
+        </div>
+    </section>
+
+    <section class="panel" style="margin-top: 16px;">
+        <h2 th:text="${stats.city.name + '市区县明细'}">区县明细</h2>
+        <table class="table">
+            <thead>
+            <tr>
+                <th>区县</th>
+                <th>房源数</th>
+                <th>平均总价</th>
+                <th>平均单价</th>
+                <th>房源</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="row : ${stats.districts}">
+                <td th:text="${row.name}">区县</td>
+                <td th:text="${row.count}">0</td>
+                <td th:text="${row.avg_total_price + ' 万元'}">0 万元</td>
+                <td th:text="${row.avg_unit_price + ' 元/㎡'}">0 元/㎡</td>
+                <td><a th:href="@{/houses/(city=${stats.city.id},district=${row.id})}">查看</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
 </main>
+<script src="/houses/js/charts.js"></script>
+<script>renderCityCharts();</script>
+<script src="/houses/js/time.js"></script>
 </body>
 </html>

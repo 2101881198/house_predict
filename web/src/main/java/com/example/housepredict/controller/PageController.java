@@ -6,7 +6,10 @@ import com.example.housepredict.repository.HouseRepository;
 import com.example.housepredict.repository.PredictResultRepository;
 import com.example.housepredict.service.AnalysisService;
 import com.example.housepredict.service.HouseService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
+import java.util.Map;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -21,42 +24,77 @@ public class PageController {
     private final HouseRepository houseRepository;
     private final CityRepository cityRepository;
     private final PredictResultRepository predictResultRepository;
+    private final ObjectMapper objectMapper;
 
-    public PageController(AnalysisService analysisService, HouseService houseService, HouseRepository houseRepository, CityRepository cityRepository, PredictResultRepository predictResultRepository) {
+    public PageController(AnalysisService analysisService, HouseService houseService, HouseRepository houseRepository, CityRepository cityRepository, PredictResultRepository predictResultRepository, ObjectMapper objectMapper) {
         this.analysisService = analysisService;
         this.houseService = houseService;
         this.houseRepository = houseRepository;
         this.cityRepository = cityRepository;
         this.predictResultRepository = predictResultRepository;
+        this.objectMapper = objectMapper;
     }
 
     @GetMapping("/")
     public String dashboard(Model model) {
-        model.addAttribute("overview", analysisService.overview());
-        model.addAttribute("priceBuckets", analysisService.priceBuckets(null));
-        model.addAttribute("areaBuckets", analysisService.areaBuckets(null));
-        model.addAttribute("roomTypes", analysisService.roomTypeDistribution(null));
-        model.addAttribute("decorations", analysisService.decorationDistribution(null));
+        var overview = analysisService.overview();
+        var priceBuckets = analysisService.priceBuckets(null);
+        var areaBuckets = analysisService.areaBuckets(null);
+        var roomTypes = analysisService.roomTypeDistribution(null);
+        var decorations = analysisService.decorationDistribution(null);
+        model.addAttribute("overview", overview);
+        model.addAttribute("priceBuckets", priceBuckets);
+        model.addAttribute("areaBuckets", areaBuckets);
+        model.addAttribute("roomTypes", roomTypes);
+        model.addAttribute("decorations", decorations);
+        model.addAttribute("overviewJson", toJson(overview));
+        model.addAttribute("priceBucketsJson", toJson(priceBuckets));
+        model.addAttribute("areaBucketsJson", toJson(areaBuckets));
+        model.addAttribute("roomTypesJson", toJson(roomTypes));
+        model.addAttribute("decorationsJson", toJson(decorations));
         model.addAttribute("cities", cityRepository.findAll());
         return "houses/dashboard";
     }
 
     @GetMapping("/province/")
     public String province(Model model) {
-        model.addAttribute("stats", analysisService.provinceStats());
-        model.addAttribute("priceBuckets", analysisService.priceBuckets(null));
-        model.addAttribute("areaBuckets", analysisService.areaBuckets(null));
-        model.addAttribute("roomTypes", analysisService.roomTypeDistribution(null));
+        var stats = analysisService.provinceStats();
+        var priceBuckets = analysisService.priceBuckets(null);
+        var areaBuckets = analysisService.areaBuckets(null);
+        var roomTypes = analysisService.roomTypeDistribution(null);
+        var mapMeta = Map.of("province_map_name", "shandong", "city_map_base_url", "/houses/maps/");
+        model.addAttribute("stats", stats);
+        model.addAttribute("priceBuckets", priceBuckets);
+        model.addAttribute("areaBuckets", areaBuckets);
+        model.addAttribute("roomTypes", roomTypes);
+        model.addAttribute("statsJson", toJson(stats));
+        model.addAttribute("priceBucketsJson", toJson(priceBuckets));
+        model.addAttribute("areaBucketsJson", toJson(areaBuckets));
+        model.addAttribute("roomTypesJson", toJson(roomTypes));
+        model.addAttribute("mapMetaJson", toJson(mapMeta));
         return "houses/province";
     }
 
     @GetMapping("/cities/{cityId}/")
     public String city(@PathVariable Long cityId, Model model) {
-        model.addAttribute("stats", analysisService.cityStats(cityId));
-        model.addAttribute("priceBuckets", analysisService.priceBuckets(cityId));
-        model.addAttribute("areaBuckets", analysisService.areaBuckets(cityId));
-        model.addAttribute("roomTypes", analysisService.roomTypeDistribution(cityId));
-        model.addAttribute("decorations", analysisService.decorationDistribution(cityId));
+        var stats = analysisService.cityStats(cityId);
+        var priceBuckets = analysisService.priceBuckets(cityId);
+        var areaBuckets = analysisService.areaBuckets(cityId);
+        var roomTypes = analysisService.roomTypeDistribution(cityId);
+        var decorations = analysisService.decorationDistribution(cityId);
+        var cityName = String.valueOf(((Map<?, ?>) stats.get("city")).get("name"));
+        var mapMeta = Map.of("city_name", cityName, "city_map_file", cityMapFile(cityName), "city_map_base_url", "/houses/maps/");
+        model.addAttribute("stats", stats);
+        model.addAttribute("priceBuckets", priceBuckets);
+        model.addAttribute("areaBuckets", areaBuckets);
+        model.addAttribute("roomTypes", roomTypes);
+        model.addAttribute("decorations", decorations);
+        model.addAttribute("statsJson", toJson(stats));
+        model.addAttribute("priceBucketsJson", toJson(priceBuckets));
+        model.addAttribute("areaBucketsJson", toJson(areaBuckets));
+        model.addAttribute("roomTypesJson", toJson(roomTypes));
+        model.addAttribute("decorationsJson", toJson(decorations));
+        model.addAttribute("mapMetaJson", toJson(mapMeta));
         return "houses/city";
     }
 
@@ -95,5 +133,29 @@ public class PageController {
         model.addAttribute("cities", cityRepository.findAll());
         model.addAttribute("recentPredictions", predictResultRepository.findByOrderByPredictTimeDesc(PageRequest.of(0, 10)));
         return "houses/predict";
+    }
+
+    private String toJson(Object value) {
+        try {
+            return objectMapper.writeValueAsString(value);
+        } catch (JsonProcessingException ex) {
+            return "{}";
+        }
+    }
+
+    private String cityMapFile(String cityName) {
+        return switch (cityName) {
+            case "济南" -> "jinan.json";
+            case "青岛" -> "qingdao.json";
+            case "烟台" -> "yantai.json";
+            case "潍坊" -> "weifang.json";
+            case "威海" -> "weihai.json";
+            case "菏泽" -> "heze.json";
+            case "临沂" -> "linyi.json";
+            case "淄博" -> "zibo.json";
+            case "济宁" -> "jining.json";
+            case "泰安" -> "taian.json";
+            default -> "";
+        };
     }
 }

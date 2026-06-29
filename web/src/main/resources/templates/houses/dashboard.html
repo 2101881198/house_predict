@@ -2,38 +2,114 @@
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
-    <title>智慧房源探索平台</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>山东省房源总览</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
     <link rel="stylesheet" href="/houses/css/app.css">
 </head>
 <body>
-<nav>
-    <a href="/">首页</a>
-    <a href="/province/">省级分析</a>
-    <a href="/houses/">房源列表</a>
-    <a href="/predict/">价格预测</a>
+<nav class="topbar">
+    <time id="current-time" class="current-time" datetime=""></time>
+    <a href="/" class="brand">智慧房源探索平台</a>
+    <div class="nav-links" aria-label="主导航">
+        <a href="/">山东省总览</a>
+        <a href="/province/">城市对比</a>
+        <a href="/houses/">房源列表</a>
+        <a href="/predict/">价格预测</a>
+    </div>
 </nav>
-<main>
-    <h1>智慧房源探索平台</h1>
-    <section>
-        <h2>总览</h2>
-        <p>房源总数：<strong th:text="${overview.total_houses}">0</strong></p>
-        <p>城市数量：<strong th:text="${overview.city_count}">0</strong></p>
-        <p>平均总价：<strong th:text="${overview.avg_total_price}">0</strong> 万</p>
-        <p>平均单价：<strong th:text="${overview.avg_unit_price}">0</strong> 元/㎡</p>
-    </section>
-    <section>
-        <h2>城市分布</h2>
-        <table>
-            <thead><tr><th>城市</th><th>数量</th><th>均价</th></tr></thead>
-            <tbody>
-            <tr th:each="row : ${overview.city_distribution}">
-                <td th:text="${row.name}">城市</td>
-                <td th:text="${row.count}">0</td>
-                <td th:text="${row.avg_unit_price}">0</td>
-            </tr>
-            </tbody>
-        </table>
-    </section>
+<main class="page">
+    <script id="overview-data" type="application/json" th:utext="${overviewJson}"></script>
+    <script id="price-buckets-data" type="application/json" th:utext="${priceBucketsJson}"></script>
+    <script id="area-buckets-data" type="application/json" th:utext="${areaBucketsJson}"></script>
+    <script id="room-types-data" type="application/json" th:utext="${roomTypesJson}"></script>
+    <script id="decoration-data" type="application/json" th:utext="${decorationsJson}"></script>
+
+    <div class="analysis-layout">
+        <aside class="analysis-sidebar" aria-label="房源层级导航">
+            <div class="sidebar-brand">智慧房源探索平台</div>
+            <div class="sidebar-breadcrumb">
+                <a href="/province/">大屏</a>
+                <span>&gt;</span>
+                <span>山东省房源</span>
+            </div>
+            <div class="sidebar-section">
+                <h2>山东省</h2>
+                <nav class="sidebar-city-list" aria-label="城市房源分析">
+                    <a class="sidebar-city-link" th:each="city : ${cities}" th:href="@{'/cities/' + ${city.id} + '/'}" th:text="${city.name + '市'}">济南市</a>
+                    <span class="muted" th:if="${#lists.isEmpty(cities)}">暂无城市数据</span>
+                </nav>
+            </div>
+        </aside>
+
+        <div class="analysis-content">
+            <header class="page-heading">
+                <h1>山东省房源总览</h1>
+                <p>从全省口径查看房源规模、价格结构、户型面积和各地级市差异。</p>
+            </header>
+
+            <section class="grid stats-grid">
+                <div class="panel">
+                    <h3>山东省房源总量</h3>
+                    <div class="metric" th:text="${overview.total_houses}">0</div>
+                    <div class="muted">套</div>
+                </div>
+                <div class="panel">
+                    <h3>覆盖地级市</h3>
+                    <div class="metric" th:text="${overview.city_count}">0</div>
+                    <div class="muted">个</div>
+                </div>
+                <div class="panel">
+                    <h3>山东省平均总价</h3>
+                    <div class="metric" th:text="${overview.avg_total_price}">0</div>
+                    <div class="muted">万元</div>
+                </div>
+                <div class="panel">
+                    <h3>山东省平均单价</h3>
+                    <div class="metric" th:text="${overview.avg_unit_price}">0</div>
+                    <div class="muted">元/㎡</div>
+                </div>
+            </section>
+
+            <section class="grid dashboard-grid">
+                <div class="panel">
+                    <h2>山东省各市房源分布</h2>
+                    <div id="city-chart" class="chart"></div>
+                </div>
+                <div class="panel">
+                    <h2>山东省总价区间</h2>
+                    <div id="price-chart" class="chart"></div>
+                </div>
+                <div class="panel">
+                    <h2>山东省价格趋势</h2>
+                    <div id="trend-chart" class="chart"></div>
+                </div>
+                <div class="panel">
+                    <h2>地级市价格趋势</h2>
+                    <div id="city-comparison-trend-chart" class="chart"></div>
+                </div>
+                <div class="panel">
+                    <h2>山东省面积区间</h2>
+                    <div id="area-chart" class="chart"></div>
+                </div>
+                <div class="panel">
+                    <h2>山东省户型结构</h2>
+                    <div id="room-chart" class="chart"></div>
+                </div>
+                <div class="panel">
+                    <h2>山东省装修情况</h2>
+                    <div id="decoration-chart" class="chart"></div>
+                </div>
+                <div class="panel">
+                    <h2>山东省城市均价排行</h2>
+                    <div id="city-price-chart" class="chart"></div>
+                </div>
+            </section>
+        </div>
+    </div>
 </main>
+<script src="/houses/js/charts.js"></script>
+<script>renderDashboardCharts();</script>
+<script src="/houses/js/time.js"></script>
 </body>
 </html>

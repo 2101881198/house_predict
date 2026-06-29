@@ -10,6 +10,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +36,8 @@ public class AnalysisService {
         data.put("city_distribution", cityDistribution(houses));
         data.put("hot_districts", hotDistricts(houses));
         data.put("city_price_rankings", cityPriceRankings(houses));
+        data.put("trend", priceTrend(houses));
+        data.put("city_price_trends", cityPriceTrends(houses));
         data.put("map_points", mapPoints(houses));
         return data;
     }
@@ -74,6 +77,7 @@ public class AnalysisService {
                 })
                 .sorted(Comparator.comparing(row -> -((Integer) row.get("count"))))
                 .toList());
+        data.put("trend", priceTrend(houses));
         return data;
     }
 
@@ -164,6 +168,41 @@ public class AnalysisService {
         return cityDistribution(houses).stream()
                 .sorted(Comparator.comparing(row -> (BigDecimal) row.get("avg_unit_price"), Comparator.reverseOrder()))
                 .limit(10)
+                .toList();
+    }
+
+    private List<Map<String, Object>> priceTrend(List<House> houses) {
+        Map<String, List<House>> grouped = houses.stream()
+                .filter(house -> house.getCrawlTime() != null)
+                .collect(Collectors.groupingBy(house -> {
+                    int quarter = (house.getCrawlTime().getMonthValue() - 1) / 3 + 1;
+                    return house.getCrawlTime().getYear() + " Q" + quarter;
+                }, TreeMap::new, Collectors.toList()));
+        return grouped.entrySet().stream()
+                .map(entry -> {
+                    List<House> rows = entry.getValue();
+                    Map<String, Object> row = new LinkedHashMap<>();
+                    row.put("date", entry.getKey());
+                    row.put("avg_total_price", avg(rows.stream().map(House::getTotalPrice).toList()));
+                    row.put("count", rows.size());
+                    return row;
+                })
+                .toList();
+    }
+
+    private List<Map<String, Object>> cityPriceTrends(List<House> houses) {
+        return houses.stream()
+                .collect(Collectors.groupingBy(house -> house.getCity().getName()))
+                .entrySet()
+                .stream()
+                .sorted(Comparator.comparing(entry -> -entry.getValue().size()))
+                .limit(5)
+                .map(entry -> {
+                    Map<String, Object> row = new LinkedHashMap<>();
+                    row.put("city", entry.getKey());
+                    row.put("trend", priceTrend(entry.getValue()));
+                    return row;
+                })
                 .toList();
     }
 
