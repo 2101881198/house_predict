@@ -94,10 +94,47 @@ public class DemoDataService {
 
     private List<Map<String, String>> rows() {
         return List.of(
-                Map.of("city", "济南", "district", "历下区", "title", "历下区精装三室", "community", "泉城花园", "totalPrice", "215", "area", "96", "roomType", "三室一厅", "floor", "中楼层", "direction", "南", "decoration", "精装", "buildYear", "2015", "address", "济南市历下区", "longitude", "117.120128", "latitude", "36.652069", "surrounding", "近地铁，近学校", "sourceUrl", "demo://jinan-lixia-1"),
-                Map.of("city", "济南", "district", "市中区", "title", "市中区改善两室", "community", "鲁能小区", "totalPrice", "168", "area", "82", "roomType", "两室一厅", "floor", "高楼层", "direction", "南北", "decoration", "简装", "buildYear", "2010", "address", "济南市市中区", "longitude", "116.997472", "latitude", "36.651121", "surrounding", "生活便利", "sourceUrl", "demo://jinan-shizhong-1"),
-                Map.of("city", "青岛", "district", "市南区", "title", "市南区海景房", "community", "海岸名都", "totalPrice", "390", "area", "118", "roomType", "三室两厅", "floor", "中楼层", "direction", "南", "decoration", "精装", "buildYear", "2018", "address", "青岛市市南区", "longitude", "120.384428", "latitude", "36.105215", "surrounding", "近海，商圈成熟", "sourceUrl", "demo://qingdao-shinan-1"),
-                Map.of("city", "烟台", "district", "芝罘区", "title", "芝罘区刚需两室", "community", "幸福里", "totalPrice", "105", "area", "76", "roomType", "两室一厅", "floor", "低楼层", "direction", "东南", "decoration", "简装", "buildYear", "2008", "address", "烟台市芝罘区", "longitude", "121.383188", "latitude", "37.539297", "surrounding", "近市场", "sourceUrl", "demo://yantai-zhifu-1")
+                row("济南", "历下区", "历下区精装三室", "泉城花园", "215", "96", "三室一厅", "中楼层", "南", "精装", "2015", "济南市历下区", "117.120128", "36.652069", "近地铁，近学校", "demo://jinan-lixia-1"),
+                row("济南", "市中区", "市中区改善两室", "鲁能小区", "168", "82", "两室一厅", "高楼层", "南北", "简装", "2010", "济南市市中区", "116.997472", "36.651121", "生活便利", "demo://jinan-shizhong-1"),
+                row("青岛", "市南区", "市南区海景房", "海岸名都", "390", "118", "三室两厅", "中楼层", "南", "精装", "2018", "青岛市市南区", "120.384428", "36.105215", "近海，商圈成熟", "demo://qingdao-shinan-1"),
+                row("烟台", "芝罘区", "芝罘区刚需两室", "幸福里", "105", "76", "两室一厅", "低楼层", "东南", "简装", "2008", "烟台市芝罘区", "121.383188", "37.539297", "近市场", "demo://yantai-zhifu-1")
+        );
+    }
+
+    private Map<String, String> row(
+            String city,
+            String district,
+            String title,
+            String community,
+            String totalPrice,
+            String area,
+            String roomType,
+            String floor,
+            String direction,
+            String decoration,
+            String buildYear,
+            String address,
+            String longitude,
+            String latitude,
+            String surrounding,
+            String sourceUrl) {
+        return Map.ofEntries(
+                Map.entry("city", city),
+                Map.entry("district", district),
+                Map.entry("title", title),
+                Map.entry("community", community),
+                Map.entry("totalPrice", totalPrice),
+                Map.entry("area", area),
+                Map.entry("roomType", roomType),
+                Map.entry("floor", floor),
+                Map.entry("direction", direction),
+                Map.entry("decoration", decoration),
+                Map.entry("buildYear", buildYear),
+                Map.entry("address", address),
+                Map.entry("longitude", longitude),
+                Map.entry("latitude", latitude),
+                Map.entry("surrounding", surrounding),
+                Map.entry("sourceUrl", sourceUrl)
         );
     }
 }
