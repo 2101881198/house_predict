@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.example.housepredict.mapper.HouseMapper">
+    <!-- 房源详情结果映射：把 houses_house 与城市、区县联查结果组装成 House 对象。 -->
     <resultMap id="HouseWithCityDistrictMap" type="com.example.housepredict.entity.House">
         <id property="id" column="id"/>
         <result property="title" column="title"/>
@@ -35,6 +36,7 @@
         </association>
     </resultMap>
 
+    <!-- 复用字段列表：所有需要关联城市、区县的房源查询都引用这段 select 字段。 -->
     <sql id="houseColumns">
         h.id, h.title, h.city_id, h.district_id, h.community, h.total_price, h.unit_price,
         h.area, h.room_type, h.floor, h.direction, h.decoration, h.build_year, h.address,
@@ -42,6 +44,7 @@
         c.name as city_name, c.province as city_province, d.name as district_name
     </sql>
 
+    <!-- 房源列表动态筛选条件：按城市、区县、户型、装修、价格区间和面积区间过滤。 -->
     <sql id="queryWhere">
         <where>
             <if test="query.city != null and query.city != ''">
@@ -71,6 +74,7 @@
         </where>
     </sql>
 
+    <!-- 按数据来源链接查询房源：演示数据导入前用于判断是否重复导入。 -->
     <select id="selectBySourceUrl" resultMap="HouseWithCityDistrictMap">
         select <include refid="houseColumns"/>
         from houses_house h
@@ -80,6 +84,7 @@
         limit 1
     </select>
 
+    <!-- 按房源 ID 查询详情：详情页和详情 API 使用，同时带出城市、区县对象。 -->
     <select id="selectWithCityAndDistrictById" resultMap="HouseWithCityDistrictMap">
         select <include refid="houseColumns"/>
         from houses_house h
@@ -89,6 +94,7 @@
         limit 1
     </select>
 
+    <!-- 查询同区县相似房源：房源详情页底部推荐列表使用，排除当前房源。 -->
     <select id="selectSimilarByDistrict" resultMap="HouseWithCityDistrictMap">
         select <include refid="houseColumns"/>
         from houses_house h
@@ -100,6 +106,7 @@
         limit #{limit}
     </select>
 
+    <!-- 查询最近新增房源：后台首页最近房源列表使用。 -->
     <select id="selectRecentWithCityAndDistrict" resultMap="HouseWithCityDistrictMap">
         select <include refid="houseColumns"/>
         from houses_house h
@@ -109,6 +116,7 @@
         limit #{limit}
     </select>
 
+    <!-- 统计筛选后的房源总数：分页查询前用于计算总条数和总页数。 -->
     <select id="countByQuery" resultType="long">
         select count(*)
         from houses_house h
@@ -117,6 +125,7 @@
         <include refid="queryWhere"/>
     </select>
 
+    <!-- 分页查询房源列表：房源列表页和 /api/houses/ 接口使用。 -->
     <select id="selectByQuery" resultMap="HouseWithCityDistrictMap">
         select <include refid="houseColumns"/>
         from houses_house h
@@ -127,10 +136,12 @@
         limit #{limit} offset #{offset}
     </select>
 
+    <!-- 计算区县平均单价：房源详情页展示区县均价时使用。 -->
     <select id="avgUnitPriceByDistrictId" resultType="java.math.BigDecimal">
         select avg(unit_price) from houses_house where district_id = #{districtId}
     </select>
 
+    <!-- 计算城市平均单价：预测结果对比和 Java 规则兜底预测使用。 -->
     <select id="avgUnitPriceByCityName" resultType="java.math.BigDecimal">
         select avg(h.unit_price)
         from houses_house h
@@ -138,6 +149,7 @@
         where c.name = #{city}
     </select>
 
+    <!-- 计算城市+区县平均单价：预测结果对比和 Java 规则兜底预测优先使用。 -->
     <select id="avgUnitPriceByCityAndDistrictName" resultType="java.math.BigDecimal">
         select avg(h.unit_price)
         from houses_house h
@@ -147,14 +159,17 @@
           and d.name = #{district}
     </select>
 
+    <!-- 计算全量房源平均单价：首页总览和预测兜底使用。 -->
     <select id="avgUnitPrice" resultType="java.math.BigDecimal">
         select avg(unit_price) from houses_house
     </select>
 
+    <!-- 计算全量房源平均总价：首页总览统计使用。 -->
     <select id="avgTotalPrice" resultType="java.math.BigDecimal">
         select avg(total_price) from houses_house
     </select>
 
+    <!-- 统计总价区间数量：价格分布柱状图使用，cityId 为空时统计全省。 -->
     <select id="countByPriceBucket" resultType="long">
         select count(*)
         from houses_house
@@ -163,6 +178,7 @@
           and (#{maxPrice} is null or total_price &lt; #{maxPrice})
     </select>
 
+    <!-- 统计面积区间数量：面积分布柱状图使用，cityId 为空时统计全省。 -->
     <select id="countByAreaBucket" resultType="long">
         select count(*)
         from houses_house
@@ -171,6 +187,7 @@
           and (#{maxArea} is null or area &lt; #{maxArea})
     </select>
 
+    <!-- 城市分布统计：按城市聚合房源数量、均价、最高价和最低价。 -->
     <select id="cityDistributionRows" resultType="map">
         select h.city_id as id, c.name as name, count(*) as total_count,
                avg(h.total_price) as avg_total_price, avg(h.unit_price) as avg_unit_price,
@@ -181,6 +198,7 @@
         order by count(*) desc, c.name
     </select>
 
+    <!-- 城市内区县统计：按区县聚合某个城市的房源数量和均价。 -->
     <select id="districtRowsByCity" resultType="map">
         select h.district_id as id, d.name as name, count(*) as total_count,
                avg(h.total_price) as avg_total_price, avg(h.unit_price) as avg_unit_price
@@ -191,6 +209,7 @@
         order by count(*) desc, d.name
     </select>
 
+    <!-- 热门区县统计：按房源数量找出最热门的区县，用于首页展示。 -->
     <select id="hotDistrictRows" resultType="map">
         select c.name as city, d.name as district, count(*) as total_count, avg(h.unit_price) as avg_unit_price
         from houses_house h
@@ -201,6 +220,7 @@
         limit #{limit}
     </select>
 
+    <!-- 全量户型分布：统计不同户型的房源数量。 -->
     <select id="roomTypeRows" resultType="map">
         select room_type as name, count(*) as total_count
         from houses_house
@@ -209,6 +229,7 @@
         order by count(*) desc, room_type
     </select>
 
+    <!-- 城市户型分布：统计某个城市内不同户型的房源数量。 -->
     <select id="roomTypeRowsByCity" resultType="map">
         select room_type as name, count(*) as total_count
         from houses_house
@@ -218,6 +239,7 @@
         order by count(*) desc, room_type
     </select>
 
+    <!-- 全量装修分布：统计不同装修类型的房源数量。 -->
     <select id="decorationRows" resultType="map">
         select decoration as name, count(*) as total_count
         from houses_house
@@ -226,6 +248,7 @@
         order by count(*) desc, decoration
     </select>
 
+    <!-- 城市装修分布：统计某个城市内不同装修类型的房源数量。 -->
     <select id="decorationRowsByCity" resultType="map">
         select decoration as name, count(*) as total_count
         from houses_house
@@ -235,6 +258,7 @@
         order by count(*) desc, decoration
     </select>
 
+    <!-- 全量价格趋势：按采集时间季度统计平均总价和数量。 -->
     <select id="trendRows" resultType="map">
         select period, count(*) as total_count, avg(total_price) as avg_total_price
         from (
@@ -249,6 +273,7 @@
         order by year_value, quarter_value
     </select>
 
+    <!-- 城市价格趋势：按采集时间季度统计某个城市的平均总价和数量。 -->
     <select id="trendRowsByCity" resultType="map">
         select period, count(*) as total_count, avg(total_price) as avg_total_price
         from (
@@ -264,6 +289,7 @@
         order by year_value, quarter_value
     </select>
 
+    <!-- 多城市趋势对比：取房源数量前 5 的城市，按季度统计均价趋势。 -->
     <select id="cityTrendRows" resultType="map">
         select city_name, period, count(*) as total_count, avg(total_price) as avg_total_price
         from (
@@ -283,6 +309,7 @@
         order by city_name, year_value, quarter_value
     </select>
 
+    <!-- 地图房源点位：查询带经纬度的房源，用于地图散点展示。 -->
     <select id="mapPointRows" resultMap="HouseWithCityDistrictMap">
         select <include refid="houseColumns"/>
         from houses_house h
@@ -294,18 +321,22 @@
         limit #{limit}
     </select>
 
+    <!-- 查询户型下拉选项：从已有房源中提取不为空的户型。 -->
     <select id="findRoomTypes" resultType="string">
         select distinct room_type from houses_house where room_type &lt;&gt; '' order by room_type
     </select>
 
+    <!-- 查询楼层下拉选项：从已有房源中提取不为空的楼层。 -->
     <select id="findFloors" resultType="string">
         select distinct floor from houses_house where floor &lt;&gt; '' order by floor
     </select>
 
+    <!-- 查询朝向下拉选项：从已有房源中提取不为空的朝向。 -->
     <select id="findDirections" resultType="string">
         select distinct direction from houses_house where direction &lt;&gt; '' order by direction
     </select>
 
+    <!-- 查询装修下拉选项：从已有房源中提取不为空的装修类型。 -->
     <select id="findDecorations" resultType="string">
         select distinct decoration from houses_house where decoration &lt;&gt; '' order by decoration
     </select>

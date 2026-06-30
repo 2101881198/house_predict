@@ -45,7 +45,11 @@ http://127.0.0.1:8000/swagger-ui/index.html
 http://127.0.0.1:8000/v3/api-docs
 ```
 
-Swagger UI 里可以直接测试 `/api/houses/`、`/api/statistics/**`、`/api/predict/price/` 等接口。`/api/admin/**` 接口需要先在浏览器登录 `/admin/`，否则会返回 401。
+Swagger UI 里分了三组：
+
+- `公开接口`：可以直接测试 `/api/houses/`、`/api/statistics/**`、`/api/predict/price/` 等 JSON 接口。
+- `后台接口`：用于测试 `/api/admin/**`，需要先在浏览器登录 `/admin/`，否则会返回 401。
+- `页面路由`：展示 `/`、`/houses/`、`/predict/`、`/admin/` 等 Thymeleaf 页面路由，主要方便查看项目完整请求入口。
 
 ## 数据库配置
 

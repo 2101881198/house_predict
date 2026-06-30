@@ -32,4 +32,12 @@ public class OpenApiConfig {
                 .pathsToMatch("/api/admin/**")
                 .build();
     }
+
+    @Bean
+    public GroupedOpenApi pageRoutes() {
+        return GroupedOpenApi.builder()
+                .group("页面路由")
+                .pathsToMatch("/", "/province/**", "/cities/**", "/houses/**", "/predict/**", "/admin/**")
+                .build();
+    }
 }

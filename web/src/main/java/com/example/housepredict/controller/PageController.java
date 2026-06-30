@@ -7,6 +7,9 @@ import com.example.housepredict.service.HouseService;
 import com.example.housepredict.service.LookupService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.math.BigDecimal;
 import java.util.Map;
 import org.springframework.stereotype.Controller;
@@ -16,6 +19,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
+@Tag(name = "页面路由", description = "返回 Thymeleaf 页面，用于浏览器访问系统页面。")
 public class PageController {
     private final AnalysisService analysisService;
     private final HouseService houseService;
@@ -30,8 +34,9 @@ public class PageController {
     }
 
     // 首页看板：展示全省房源总览、价格/面积/户型/装修图表和城市入口。
+    @Operation(summary = "首页看板", description = "展示全省房源总览、城市分布、价格/面积/户型/装修图表。")
     @GetMapping("/")
-    public String dashboard(Model model) {
+    public String dashboard(@Parameter(hidden = true) Model model) {
         var overview = analysisService.overview();
         var priceBuckets = analysisService.priceBuckets(null);
         var areaBuckets = analysisService.areaBuckets(null);
@@ -52,8 +57,9 @@ public class PageController {
     }
 
     // 省级分析页：展示山东省城市对比、全省结构统计和省级地图数据。
+    @Operation(summary = "省级分析页", description = "展示山东省各城市房源数量、均价、结构分布和地图数据。")
     @GetMapping("/province/")
-    public String province(Model model) {
+    public String province(@Parameter(hidden = true) Model model) {
         var stats = analysisService.provinceStats();
         var priceBuckets = analysisService.priceBuckets(null);
         var areaBuckets = analysisService.areaBuckets(null);
@@ -72,8 +78,9 @@ public class PageController {
     }
 
     // 城市分析页：根据城市 ID 展示该城市的区县统计、趋势和地图。
+    @Operation(summary = "城市分析页", description = "根据城市 ID 展示该城市区县统计、价格趋势和地图数据。")
     @GetMapping("/cities/{cityId}/")
-    public String city(@PathVariable Long cityId, Model model) {
+    public String city(@PathVariable Long cityId, @Parameter(hidden = true) Model model) {
         var stats = analysisService.cityStats(cityId);
         var priceBuckets = analysisService.priceBuckets(cityId);
         var areaBuckets = analysisService.areaBuckets(cityId);
@@ -96,6 +103,7 @@ public class PageController {
     }
 
     // 房源列表页：接收筛选、排序、分页参数，并渲染房源列表。
+    @Operation(summary = "房源列表页", description = "按城市、区县、户型、装修、价格、面积和排序条件筛选房源列表。")
     @GetMapping("/houses/")
     public String houses(
             @RequestParam(required = false) String city,
@@ -109,7 +117,7 @@ public class PageController {
             @RequestParam(required = false) String sort,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10", name = "page_size") int pageSize,
-            Model model) {
+            @Parameter(hidden = true) Model model) {
         HouseQuery query = new HouseQuery(city, district, roomType, decoration, minPrice, maxPrice, minArea, maxArea, sort, page, pageSize);
         model.addAttribute("page", houseService.findHouses(query, 50));
         model.addAttribute("cities", lookupService.findAllCities());
@@ -118,8 +126,9 @@ public class PageController {
     }
 
     // 房源详情页：根据房源 ID 展示单套房源、区县均价和同区县相似房源。
+    @Operation(summary = "房源详情页", description = "根据房源 ID 展示单套房源详情、区县均价和相似房源。")
     @GetMapping("/houses/{houseId}/")
-    public String houseDetail(@PathVariable Long houseId, Model model) {
+    public String houseDetail(@PathVariable Long houseId, @Parameter(hidden = true) Model model) {
         var house = houseService.findWithCityAndDistrictById(houseId);
         model.addAttribute("house", house);
         model.addAttribute("similarHouses", houseService.findSimilarHouses(house.getDistrictId(), house.getId(), 6));
@@ -128,8 +137,9 @@ public class PageController {
     }
 
     // 价格预测页：渲染预测表单、下拉选项、城市区县联动数据和最近预测记录。
+    @Operation(summary = "价格预测页", description = "展示价格预测表单、城市区县联动下拉框和最近预测记录。")
     @GetMapping("/predict/")
-    public String predict(Model model) {
+    public String predict(@Parameter(hidden = true) Model model) {
         var cities = lookupService.findAllCities();
         var cityDistricts = cities.stream()
                 .map(city -> Map.of(
