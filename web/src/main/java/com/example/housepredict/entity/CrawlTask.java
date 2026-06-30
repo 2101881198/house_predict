@@ -1,45 +1,46 @@
 package com.example.housepredict.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "houses_crawltask")
+@TableName("houses_crawltask")
 public class CrawlTask extends BaseEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(type = IdType.AUTO)
     private Long id;
 
-    @Column(name = "task_name", nullable = false, length = 100)
+    @TableField("task_name")
     private String taskName;
 
-    @Column(name = "target_city", nullable = false, length = 50)
+    @TableField("target_city")
     private String targetCity;
 
-    @Column(name = "target_district", length = 50)
+    @TableField("target_district")
     private String targetDistrict = "";
 
-    @Column(name = "page_count")
+    @TableField("page_count")
     private Integer pageCount = 1;
+
     private String status = "pending";
-    @Column(name = "success_count")
+
+    @TableField("success_count")
     private Integer successCount = 0;
-    @Column(name = "fail_count")
+
+    @TableField("fail_count")
     private Integer failCount = 0;
-    @Column(name = "started_at")
+
+    @TableField("started_at")
     private LocalDateTime startedAt;
-    @Column(name = "finished_at")
+
+    @TableField("finished_at")
     private LocalDateTime finishedAt;
 
-    @Column(columnDefinition = "TEXT")
     private String message = "";
 
     public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
     public String getTaskName() { return taskName; }
     public void setTaskName(String taskName) { this.taskName = taskName; }
     public String getTargetCity() { return targetCity; }

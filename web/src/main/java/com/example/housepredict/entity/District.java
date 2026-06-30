@@ -1,35 +1,37 @@
 package com.example.housepredict.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 
-@Entity
-@Table(
-        name = "houses_district",
-        uniqueConstraints = @UniqueConstraint(name = "uk_district_city_name", columnNames = {"city_id", "name"})
-)
+@TableName("houses_district")
 public class District extends BaseEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(type = IdType.AUTO)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "city_id")
-    private City city;
+    @TableField("city_id")
+    private Long cityId;
 
-    @Column(nullable = false, length = 50)
     private String name;
+
+    @TableField(exist = false)
+    private City city;
 
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getCityId() {
+        return cityId;
+    }
+
+    public void setCityId(Long cityId) {
+        this.cityId = cityId;
     }
 
     public City getCity() {
@@ -38,6 +40,7 @@ public class District extends BaseEntity {
 
     public void setCity(City city) {
         this.city = city;
+        this.cityId = city == null ? null : city.getId();
     }
 
     public String getName() {

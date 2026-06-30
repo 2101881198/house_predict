@@ -4,12 +4,11 @@ import com.example.housepredict.dto.ApiResponse;
 import com.example.housepredict.dto.HouseQuery;
 import com.example.housepredict.dto.PredictRequest;
 import com.example.housepredict.entity.CrawlTask;
-import com.example.housepredict.repository.CrawlTaskRepository;
-import com.example.housepredict.repository.HouseRepository;
 import com.example.housepredict.service.AnalysisService;
 import com.example.housepredict.service.DemoDataService;
-import com.example.housepredict.service.HouseMapper;
+import com.example.housepredict.service.HouseViewMapper;
 import com.example.housepredict.service.HouseService;
+import com.example.housepredict.service.LookupService;
 import com.example.housepredict.service.PredictionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,20 +27,18 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "房源与统计接口", description = "房源查询、统计分析、价格预测和后台演示任务接口")
 public class HouseApiController {
     private final HouseService houseService;
-    private final HouseRepository houseRepository;
-    private final HouseMapper houseMapper;
+    private final HouseViewMapper houseViewMapper;
     private final AnalysisService analysisService;
     private final PredictionService predictionService;
-    private final CrawlTaskRepository crawlTaskRepository;
+    private final LookupService lookupService;
     private final DemoDataService demoDataService;
 
-    public HouseApiController(HouseService houseService, HouseRepository houseRepository, HouseMapper houseMapper, AnalysisService analysisService, PredictionService predictionService, CrawlTaskRepository crawlTaskRepository, DemoDataService demoDataService) {
+    public HouseApiController(HouseService houseService, HouseViewMapper houseViewMapper, AnalysisService analysisService, PredictionService predictionService, LookupService lookupService, DemoDataService demoDataService) {
         this.houseService = houseService;
-        this.houseRepository = houseRepository;
-        this.houseMapper = houseMapper;
+        this.houseViewMapper = houseViewMapper;
         this.analysisService = analysisService;
         this.predictionService = predictionService;
-        this.crawlTaskRepository = crawlTaskRepository;
+        this.lookupService = lookupService;
         this.demoDataService = demoDataService;
     }
 
@@ -66,7 +63,7 @@ public class HouseApiController {
         data.put("total", housePage.getTotalElements());
         data.put("page", housePage.getNumber() + 1);
         data.put("page_size", housePage.getSize());
-        data.put("items", housePage.getContent().stream().map(houseMapper::toMap).toList());
+        data.put("items", housePage.getContent().stream().map(houseViewMapper::toMap).toList());
         return ApiResponse.ok(data);
     }
 
@@ -74,9 +71,7 @@ public class HouseApiController {
     @Operation(summary = "查询房源详情", description = "根据房源 ID 返回单套房源的标题、城市、区县、价格、面积、户型等信息。")
     @GetMapping("/api/houses/{houseId}/")
     public ResponseEntity<ApiResponse<Map<String, Object>>> houseDetail(@PathVariable Long houseId) {
-        return houseRepository.findWithCityAndDistrictById(houseId)
-                .map(house -> ResponseEntity.ok(ApiResponse.ok(houseMapper.toMap(house))))
-                .orElseGet(() -> ResponseEntity.status(404).body(ApiResponse.<Map<String, Object>>error(404, "House not found")));
+        return ResponseEntity.ok(ApiResponse.ok(houseViewMapper.toMap(houseService.findWithCityAndDistrictById(houseId))));
     }
 
     // 公开 API：首页总览统计，返回房源总数、均价、城市分布等数据。
@@ -114,7 +109,7 @@ public class HouseApiController {
     @Operation(summary = "查询演示采集任务", description = "管理员登录后查询最近 100 条演示采集任务记录。")
     @GetMapping("/api/admin/crawl-tasks/")
     public ApiResponse<Map<String, Object>> crawlTasks() {
-        return ApiResponse.ok(Map.of("items", crawlTaskRepository.findTop100ByOrderByCreatedAtDesc()));
+        return ApiResponse.ok(Map.of("items", lookupService.recentCrawlTasks()));
     }
 
     // 后台 API：创建演示采集任务并导入内置示例数据，需要管理员登录。

@@ -1,94 +1,85 @@
 package com.example.housepredict.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Index;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(
-        name = "houses_house",
-        indexes = {
-                @Index(name = "idx_house_city_district", columnList = "city_id,district_id"),
-                @Index(name = "idx_house_price_area", columnList = "total_price,area")
-        }
-)
+@TableName("houses_house")
 public class House extends BaseEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(type = IdType.AUTO)
     private Long id;
 
-    @Column(nullable = false, length = 200)
     private String title;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "city_id")
+    @TableField("city_id")
+    private Long cityId;
+
+    @TableField("district_id")
+    private Long districtId;
+
+    @TableField(exist = false)
     private City city;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "district_id")
+    @TableField(exist = false)
     private District district;
 
-    @Column(length = 100)
     private String community = "";
 
-    @Column(name = "total_price", nullable = false, precision = 10, scale = 2)
+    @TableField("total_price")
     private BigDecimal totalPrice;
 
-    @Column(name = "unit_price", nullable = false, precision = 10, scale = 2)
+    @TableField("unit_price")
     private BigDecimal unitPrice;
 
-    @Column(nullable = false, precision = 8, scale = 2)
     private BigDecimal area;
 
-    @Column(name = "room_type", length = 50)
+    @TableField("room_type")
     private String roomType = "";
 
-    @Column(length = 50)
     private String floor = "";
 
-    @Column(length = 50)
     private String direction = "";
 
-    @Column(length = 50)
     private String decoration = "";
 
-    @Column(name = "build_year")
+    @TableField("build_year")
     private Integer buildYear;
 
-    @Column(length = 255)
     private String address = "";
 
-    @Column(precision = 10, scale = 6)
     private BigDecimal longitude;
 
-    @Column(precision = 10, scale = 6)
     private BigDecimal latitude;
 
-    @Column(columnDefinition = "TEXT")
     private String surrounding = "";
 
-    @Column(name = "source_url", length = 500, unique = true)
+    @TableField("source_url")
     private String sourceUrl;
 
-    @Column(name = "crawl_time")
+    @TableField("crawl_time")
     private LocalDateTime crawlTime;
 
     public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
+    public Long getCityId() { return cityId; }
+    public void setCityId(Long cityId) { this.cityId = cityId; }
+    public Long getDistrictId() { return districtId; }
+    public void setDistrictId(Long districtId) { this.districtId = districtId; }
     public City getCity() { return city; }
-    public void setCity(City city) { this.city = city; }
+    public void setCity(City city) {
+        this.city = city;
+        this.cityId = city == null ? null : city.getId();
+    }
     public District getDistrict() { return district; }
-    public void setDistrict(District district) { this.district = district; }
+    public void setDistrict(District district) {
+        this.district = district;
+        this.districtId = district == null ? null : district.getId();
+    }
     public String getCommunity() { return community; }
     public void setCommunity(String community) { this.community = community; }
     public BigDecimal getTotalPrice() { return totalPrice; }

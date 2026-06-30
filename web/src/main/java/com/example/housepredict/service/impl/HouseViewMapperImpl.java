@@ -1,12 +1,14 @@
-package com.example.housepredict.service;
+package com.example.housepredict.service.impl;
 
 import com.example.housepredict.entity.House;
+import com.example.housepredict.service.HouseViewMapper;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-@Component
-public class HouseMapper {
+@Service
+public class HouseViewMapperImpl implements HouseViewMapper {
+    @Override
     public Map<String, Object> toMap(House house) {
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("id", house.getId());

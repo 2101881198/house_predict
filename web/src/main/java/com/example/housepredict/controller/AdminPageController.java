@@ -1,37 +1,27 @@
 package com.example.housepredict.controller;
 
-import com.example.housepredict.repository.CityRepository;
-import com.example.housepredict.repository.CrawlTaskRepository;
-import com.example.housepredict.repository.HouseRepository;
-import com.example.housepredict.repository.PredictResultRepository;
-import org.springframework.data.domain.PageRequest;
+import com.example.housepredict.service.LookupService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
 public class AdminPageController {
-    private final CityRepository cityRepository;
-    private final HouseRepository houseRepository;
-    private final CrawlTaskRepository crawlTaskRepository;
-    private final PredictResultRepository predictResultRepository;
+    private final LookupService lookupService;
 
-    public AdminPageController(CityRepository cityRepository, HouseRepository houseRepository, CrawlTaskRepository crawlTaskRepository, PredictResultRepository predictResultRepository) {
-        this.cityRepository = cityRepository;
-        this.houseRepository = houseRepository;
-        this.crawlTaskRepository = crawlTaskRepository;
-        this.predictResultRepository = predictResultRepository;
+    public AdminPageController(LookupService lookupService) {
+        this.lookupService = lookupService;
     }
 
     // 管理后台首页：展示统计摘要、最近房源、采集任务和预测记录。
     @GetMapping("/admin/")
     public String admin(Model model) {
-        model.addAttribute("cityCount", cityRepository.count());
-        model.addAttribute("houseCount", houseRepository.count());
-        model.addAttribute("cities", cityRepository.findAll());
-        model.addAttribute("recentHouses", houseRepository.findTop20ByOrderByCreatedAtDescIdDesc());
-        model.addAttribute("crawlTasks", crawlTaskRepository.findTop100ByOrderByCreatedAtDesc());
-        model.addAttribute("recentPredictions", predictResultRepository.findByOrderByPredictTimeDesc(PageRequest.of(0, 10)));
+        model.addAttribute("cityCount", lookupService.cityCount());
+        model.addAttribute("houseCount", lookupService.houseCount());
+        model.addAttribute("cities", lookupService.findAllCities());
+        model.addAttribute("recentHouses", lookupService.recentHouses(20));
+        model.addAttribute("crawlTasks", lookupService.recentCrawlTasks());
+        model.addAttribute("recentPredictions", lookupService.recentPredictions(10));
         return "houses/admin";
     }
 }

@@ -92,9 +92,11 @@ public ApiResponse<Map<String, Object>> houses(...) {
 
 - `controller/PageController.java`：返回 Thymeleaf 页面
 - `controller/HouseApiController.java`：返回 JSON API
-- `service/*.java`：业务逻辑
-- `repository/*.java`：数据库访问
-- `entity/*.java`：数据库表映射
+- `service/*.java`：业务接口
+- `service/impl/*.java`：业务实现
+- `mapper/*.java`：MyBatis-Plus 持久层接口
+- `resources/mapper/*.xml`：复杂 SQL 和统计查询
+- `entity/*.java`：数据库表对象映射
 - `templates/houses/*.html`：页面模板
 - `static/houses/**`：CSS、JS、地图静态资源
 

@@ -2,17 +2,13 @@ package com.example.housepredict.controller;
 
 import com.example.housepredict.entity.District;
 import com.example.housepredict.dto.HouseQuery;
-import com.example.housepredict.repository.CityRepository;
-import com.example.housepredict.repository.DistrictRepository;
-import com.example.housepredict.repository.HouseRepository;
-import com.example.housepredict.repository.PredictResultRepository;
 import com.example.housepredict.service.AnalysisService;
 import com.example.housepredict.service.HouseService;
+import com.example.housepredict.service.LookupService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.util.Map;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,19 +19,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class PageController {
     private final AnalysisService analysisService;
     private final HouseService houseService;
-    private final HouseRepository houseRepository;
-    private final CityRepository cityRepository;
-    private final DistrictRepository districtRepository;
-    private final PredictResultRepository predictResultRepository;
+    private final LookupService lookupService;
     private final ObjectMapper objectMapper;
 
-    public PageController(AnalysisService analysisService, HouseService houseService, HouseRepository houseRepository, CityRepository cityRepository, DistrictRepository districtRepository, PredictResultRepository predictResultRepository, ObjectMapper objectMapper) {
+    public PageController(AnalysisService analysisService, HouseService houseService, LookupService lookupService, ObjectMapper objectMapper) {
         this.analysisService = analysisService;
         this.houseService = houseService;
-        this.houseRepository = houseRepository;
-        this.cityRepository = cityRepository;
-        this.districtRepository = districtRepository;
-        this.predictResultRepository = predictResultRepository;
+        this.lookupService = lookupService;
         this.objectMapper = objectMapper;
     }
 
@@ -57,7 +47,7 @@ public class PageController {
         model.addAttribute("areaBucketsJson", toJson(areaBuckets));
         model.addAttribute("roomTypesJson", toJson(roomTypes));
         model.addAttribute("decorationsJson", toJson(decorations));
-        model.addAttribute("cities", cityRepository.findAll());
+        model.addAttribute("cities", lookupService.findAllCities());
         return "houses/dashboard";
     }
 
@@ -122,39 +112,39 @@ public class PageController {
             Model model) {
         HouseQuery query = new HouseQuery(city, district, roomType, decoration, minPrice, maxPrice, minArea, maxArea, sort, page, pageSize);
         model.addAttribute("page", houseService.findHouses(query, 50));
-        model.addAttribute("cities", cityRepository.findAll());
-        model.addAttribute("roomTypes", houseRepository.findRoomTypes());
+        model.addAttribute("cities", lookupService.findAllCities());
+        model.addAttribute("roomTypes", lookupService.findRoomTypes());
         return "houses/house_list";
     }
 
     // 房源详情页：根据房源 ID 展示单套房源、区县均价和同区县相似房源。
     @GetMapping("/houses/{houseId}/")
     public String houseDetail(@PathVariable Long houseId, Model model) {
-        var house = houseRepository.findWithCityAndDistrictById(houseId).orElseThrow();
+        var house = houseService.findWithCityAndDistrictById(houseId);
         model.addAttribute("house", house);
-        model.addAttribute("similarHouses", houseRepository.findByDistrictAndIdNotOrderByCrawlTimeDescIdDesc(house.getDistrict(), house.getId(), PageRequest.of(0, 6)));
-        model.addAttribute("districtAvgUnitPrice", houseRepository.avgUnitPriceByDistrict(house.getDistrict()));
+        model.addAttribute("similarHouses", houseService.findSimilarHouses(house.getDistrictId(), house.getId(), 6));
+        model.addAttribute("districtAvgUnitPrice", houseService.avgUnitPriceByDistrictId(house.getDistrictId()));
         return "houses/house_detail";
     }
 
     // 价格预测页：渲染预测表单、下拉选项、城市区县联动数据和最近预测记录。
     @GetMapping("/predict/")
     public String predict(Model model) {
-        var cities = cityRepository.findAll();
+        var cities = lookupService.findAllCities();
         var cityDistricts = cities.stream()
                 .map(city -> Map.of(
                         "name", city.getName(),
-                        "districts", districtRepository.findByCityOrderByName(city).stream()
+                        "districts", lookupService.findDistrictsByCity(city).stream()
                                 .map(District::getName)
                                 .toList()))
                 .toList();
         model.addAttribute("cities", cities);
         model.addAttribute("cityDistrictsJson", toJson(cityDistricts));
-        model.addAttribute("roomTypes", houseRepository.findRoomTypes());
-        model.addAttribute("floors", houseRepository.findFloors());
-        model.addAttribute("directions", houseRepository.findDirections());
-        model.addAttribute("decorations", houseRepository.findDecorations());
-        model.addAttribute("recentPredictions", predictResultRepository.findByOrderByPredictTimeDesc(PageRequest.of(0, 10)));
+        model.addAttribute("roomTypes", lookupService.findRoomTypes());
+        model.addAttribute("floors", lookupService.findFloors());
+        model.addAttribute("directions", lookupService.findDirections());
+        model.addAttribute("decorations", lookupService.findDecorations());
+        model.addAttribute("recentPredictions", lookupService.recentPredictions(10));
         return "houses/predict";
     }
 

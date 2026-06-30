@@ -1,15 +1,9 @@
 package com.example.housepredict.controller;
 
-import com.example.housepredict.entity.City;
-import com.example.housepredict.entity.District;
-import com.example.housepredict.entity.House;
-import com.example.housepredict.repository.CityRepository;
-import com.example.housepredict.repository.DistrictRepository;
-import com.example.housepredict.repository.HouseRepository;
+import com.example.housepredict.service.AdminHouseService;
 import com.example.housepredict.service.DemoDataService;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.LocalDateTime;
+import java.util.NoSuchElementException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,15 +12,11 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 public class AdminHouseController {
-    private final CityRepository cityRepository;
-    private final DistrictRepository districtRepository;
-    private final HouseRepository houseRepository;
+    private final AdminHouseService adminHouseService;
     private final DemoDataService demoDataService;
 
-    public AdminHouseController(CityRepository cityRepository, DistrictRepository districtRepository, HouseRepository houseRepository, DemoDataService demoDataService) {
-        this.cityRepository = cityRepository;
-        this.districtRepository = districtRepository;
-        this.houseRepository = houseRepository;
+    public AdminHouseController(AdminHouseService adminHouseService, DemoDataService demoDataService) {
+        this.adminHouseService = adminHouseService;
         this.demoDataService = demoDataService;
     }
 
@@ -45,56 +35,24 @@ public class AdminHouseController {
             @RequestParam(name = "build_year", required = false) Integer buildYear,
             @RequestParam(required = false, defaultValue = "") String address,
             RedirectAttributes redirectAttributes) {
-        if (title.isBlank() || city.isBlank() || district.isBlank()) {
-            redirectAttributes.addFlashAttribute("error", "标题、城市和区县不能为空");
-            return "redirect:/admin/";
+        try {
+            String houseTitle = adminHouseService.createHouse(title, city, district, totalPrice, area, roomType, floor, direction, decoration, buildYear, address);
+            redirectAttributes.addFlashAttribute("message", "房源添加成功：" + houseTitle);
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
         }
-        if (totalPrice.compareTo(BigDecimal.ZERO) <= 0 || area.compareTo(BigDecimal.ZERO) <= 0) {
-            redirectAttributes.addFlashAttribute("error", "总价和面积必须大于 0");
-            return "redirect:/admin/";
-        }
-
-        City cityEntity = cityRepository.findByName(city.trim()).orElseGet(() -> {
-            City created = new City();
-            created.setName(city.trim());
-            return cityRepository.save(created);
-        });
-        District districtEntity = districtRepository.findByCityAndName(cityEntity, district.trim()).orElseGet(() -> {
-            District created = new District();
-            created.setCity(cityEntity);
-            created.setName(district.trim());
-            return districtRepository.save(created);
-        });
-
-        House house = new House();
-        house.setTitle(title.trim());
-        house.setCity(cityEntity);
-        house.setDistrict(districtEntity);
-        house.setTotalPrice(totalPrice);
-        house.setArea(area);
-        house.setUnitPrice(totalPrice.multiply(BigDecimal.valueOf(10000)).divide(area, 2, RoundingMode.HALF_UP));
-        house.setRoomType(roomType.trim());
-        house.setFloor(floor.trim());
-        house.setDirection(direction.trim());
-        house.setDecoration(decoration.trim());
-        house.setBuildYear(buildYear);
-        house.setAddress(address.isBlank() ? cityEntity.getName() + " " + districtEntity.getName() + " " + title.trim() : address.trim());
-        house.setCrawlTime(LocalDateTime.now());
-        houseRepository.save(house);
-
-        redirectAttributes.addFlashAttribute("message", "房源添加成功：" + house.getTitle());
         return "redirect:/admin/";
     }
 
     // 后台表单：删除指定房源，删除后回到管理后台并显示操作结果。
     @PostMapping("/admin/houses/{houseId}/delete")
     public String deleteHouse(@PathVariable Long houseId, RedirectAttributes redirectAttributes) {
-        if (!houseRepository.existsById(houseId)) {
-            redirectAttributes.addFlashAttribute("error", "房源不存在，无法删除");
-            return "redirect:/admin/";
+        try {
+            adminHouseService.deleteHouse(houseId);
+            redirectAttributes.addFlashAttribute("message", "房源已删除");
+        } catch (NoSuchElementException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
         }
-        houseRepository.deleteById(houseId);
-        redirectAttributes.addFlashAttribute("message", "房源已删除");
         return "redirect:/admin/";
     }
 

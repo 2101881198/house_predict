@@ -1,44 +1,47 @@
 package com.example.housepredict.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "houses_predictresult")
+@TableName("houses_predictresult")
 public class PredictResult extends BaseEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(type = IdType.AUTO)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "house_id")
+    @TableField("house_id")
+    private Long houseId;
+
+    @TableField(exist = false)
     private House house;
 
-    @Column(name = "input_features", columnDefinition = "TEXT", nullable = false)
+    @TableField("input_features")
     private String inputFeatures;
 
-    @Column(name = "predicted_price", nullable = false, precision = 10, scale = 2)
+    @TableField("predicted_price")
     private BigDecimal predictedPrice;
 
-    @Column(name = "predicted_unit_price", nullable = false, precision = 10, scale = 2)
+    @TableField("predicted_unit_price")
     private BigDecimal predictedUnitPrice;
 
-    @Column(name = "model_name", nullable = false, length = 100)
+    @TableField("model_name")
     private String modelName;
 
-    @Column(name = "predict_time")
+    @TableField("predict_time")
     private LocalDateTime predictTime = LocalDateTime.now();
 
     public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public Long getHouseId() { return houseId; }
+    public void setHouseId(Long houseId) { this.houseId = houseId; }
+    public House getHouse() { return house; }
+    public void setHouse(House house) {
+        this.house = house;
+        this.houseId = house == null ? null : house.getId();
+    }
     public String getInputFeatures() { return inputFeatures; }
     public void setInputFeatures(String inputFeatures) { this.inputFeatures = inputFeatures; }
     public BigDecimal getPredictedPrice() { return predictedPrice; }
