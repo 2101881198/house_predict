@@ -23,6 +23,7 @@ public class AdminPageController {
         this.predictResultRepository = predictResultRepository;
     }
 
+    // 管理后台首页：展示统计摘要、最近房源、采集任务和预测记录。
     @GetMapping("/admin/")
     public String admin(Model model) {
         model.addAttribute("cityCount", cityRepository.count());

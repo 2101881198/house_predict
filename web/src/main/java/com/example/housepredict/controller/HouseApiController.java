@@ -11,6 +11,8 @@ import com.example.housepredict.service.DemoDataService;
 import com.example.housepredict.service.HouseMapper;
 import com.example.housepredict.service.HouseService;
 import com.example.housepredict.service.PredictionService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.math.BigDecimal;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Tag(name = "房源与统计接口", description = "房源查询、统计分析、价格预测和后台演示任务接口")
 public class HouseApiController {
     private final HouseService houseService;
     private final HouseRepository houseRepository;
@@ -42,6 +45,8 @@ public class HouseApiController {
         this.demoDataService = demoDataService;
     }
 
+    // 公开 API：按城市、区县、户型、装修、价格、面积等条件分页查询房源。
+    @Operation(summary = "分页查询房源", description = "支持按城市、区县、户型、装修、总价区间、面积区间和排序条件查询房源。")
     @GetMapping("/api/houses/")
     public ApiResponse<Map<String, Object>> houses(
             @RequestParam(required = false) String city,
@@ -65,6 +70,8 @@ public class HouseApiController {
         return ApiResponse.ok(data);
     }
 
+    // 公开 API：根据房源 ID 查询单套房源详情，找不到时返回 404。
+    @Operation(summary = "查询房源详情", description = "根据房源 ID 返回单套房源的标题、城市、区县、价格、面积、户型等信息。")
     @GetMapping("/api/houses/{houseId}/")
     public ResponseEntity<ApiResponse<Map<String, Object>>> houseDetail(@PathVariable Long houseId) {
         return houseRepository.findWithCityAndDistrictById(houseId)
@@ -72,16 +79,22 @@ public class HouseApiController {
                 .orElseGet(() -> ResponseEntity.status(404).body(ApiResponse.<Map<String, Object>>error(404, "House not found")));
     }
 
+    // 公开 API：首页总览统计，返回房源总数、均价、城市分布等数据。
+    @Operation(summary = "首页总览统计", description = "返回房源总数、城市数量、平均总价、平均单价、城市分布和趋势等总览数据。")
     @GetMapping("/api/statistics/overview/")
     public ApiResponse<Map<String, Object>> overview() {
         return ApiResponse.ok(analysisService.overview());
     }
 
+    // 公开 API：省级统计，返回各城市房源数量和价格对比。
+    @Operation(summary = "省级统计", description = "返回山东省各城市的房源数量、平均总价、平均单价、最高价和最低价。")
     @GetMapping("/api/statistics/province/")
     public ApiResponse<Map<String, Object>> province() {
         return ApiResponse.ok(analysisService.provinceStats());
     }
 
+    // 公开 API：城市统计，必须传 city_id，返回城市摘要和区县统计。
+    @Operation(summary = "城市统计", description = "根据 city_id 返回某个城市的摘要、区县分布和价格趋势。")
     @GetMapping("/api/statistics/city/")
     public ResponseEntity<ApiResponse<Map<String, Object>>> city(@RequestParam(required = false, name = "city_id") Long cityId) {
         if (cityId == null) {
@@ -90,16 +103,22 @@ public class HouseApiController {
         return ResponseEntity.ok(ApiResponse.ok(analysisService.cityStats(cityId)));
     }
 
+    // 公开 API：提交房屋特征进行价格预测，并保存一条预测记录。
+    @Operation(summary = "房价预测", description = "提交城市、区县、面积、户型、楼层、朝向、装修和建造年份，返回参考总价和参考单价。")
     @PostMapping("/api/predict/price/")
     public ApiResponse<?> predict(@RequestBody(required = false) PredictRequest request) {
         return ApiResponse.ok(predictionService.predict(request == null ? new PredictRequest(null, null, null, null, null, null, null, null) : request));
     }
 
+    // 后台 API：查询最近的演示采集任务记录，需要管理员登录。
+    @Operation(summary = "查询演示采集任务", description = "管理员登录后查询最近 100 条演示采集任务记录。")
     @GetMapping("/api/admin/crawl-tasks/")
     public ApiResponse<Map<String, Object>> crawlTasks() {
         return ApiResponse.ok(Map.of("items", crawlTaskRepository.findTop100ByOrderByCreatedAtDesc()));
     }
 
+    // 后台 API：创建演示采集任务并导入内置示例数据，需要管理员登录。
+    @Operation(summary = "创建演示采集任务", description = "管理员登录后创建一条演示采集任务，并导入内置示例房源数据。")
     @PostMapping("/api/admin/crawl-tasks/")
     public ApiResponse<Map<String, Object>> createCrawlTask(@RequestBody(required = false) Map<String, Object> body) {
         String city = value(body, "target_city", "济南");

@@ -31,6 +31,22 @@ mvn spring-boot:run
 http://127.0.0.1:8000/
 ```
 
+## Swagger 接口文档
+
+项目已接入 springdoc-openapi，启动 Spring Boot 后可以打开：
+
+```text
+http://127.0.0.1:8000/swagger-ui/index.html
+```
+
+也可以查看原始 OpenAPI JSON：
+
+```text
+http://127.0.0.1:8000/v3/api-docs
+```
+
+Swagger UI 里可以直接测试 `/api/houses/`、`/api/statistics/**`、`/api/predict/price/` 等接口。`/api/admin/**` 接口需要先在浏览器登录 `/admin/`，否则会返回 401。
+
 ## 数据库配置
 
 配置在 `src/main/resources/application.yml`，支持环境变量：

@@ -39,6 +39,7 @@ public class PageController {
         this.objectMapper = objectMapper;
     }
 
+    // 首页看板：展示全省房源总览、价格/面积/户型/装修图表和城市入口。
     @GetMapping("/")
     public String dashboard(Model model) {
         var overview = analysisService.overview();
@@ -60,6 +61,7 @@ public class PageController {
         return "houses/dashboard";
     }
 
+    // 省级分析页：展示山东省城市对比、全省结构统计和省级地图数据。
     @GetMapping("/province/")
     public String province(Model model) {
         var stats = analysisService.provinceStats();
@@ -79,6 +81,7 @@ public class PageController {
         return "houses/province";
     }
 
+    // 城市分析页：根据城市 ID 展示该城市的区县统计、趋势和地图。
     @GetMapping("/cities/{cityId}/")
     public String city(@PathVariable Long cityId, Model model) {
         var stats = analysisService.cityStats(cityId);
@@ -102,6 +105,7 @@ public class PageController {
         return "houses/city";
     }
 
+    // 房源列表页：接收筛选、排序、分页参数，并渲染房源列表。
     @GetMapping("/houses/")
     public String houses(
             @RequestParam(required = false) String city,
@@ -123,6 +127,7 @@ public class PageController {
         return "houses/house_list";
     }
 
+    // 房源详情页：根据房源 ID 展示单套房源、区县均价和同区县相似房源。
     @GetMapping("/houses/{houseId}/")
     public String houseDetail(@PathVariable Long houseId, Model model) {
         var house = houseRepository.findWithCityAndDistrictById(houseId).orElseThrow();
@@ -132,6 +137,7 @@ public class PageController {
         return "houses/house_detail";
     }
 
+    // 价格预测页：渲染预测表单、下拉选项、城市区县联动数据和最近预测记录。
     @GetMapping("/predict/")
     public String predict(Model model) {
         var cities = cityRepository.findAll();

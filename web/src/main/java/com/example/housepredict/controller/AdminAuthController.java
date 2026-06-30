@@ -21,11 +21,13 @@ public class AdminAuthController {
         this.adminPassword = adminPassword;
     }
 
+    // 管理员登录页：展示后台登录表单。
     @GetMapping("/admin/login")
     public String loginPage() {
         return "houses/admin_login";
     }
 
+    // 管理员登录提交：校验账号密码，成功后把登录状态写入 Session。
     @PostMapping("/admin/login")
     public String login(
             @RequestParam String username,
@@ -41,6 +43,7 @@ public class AdminAuthController {
         return "houses/admin_login";
     }
 
+    // 管理员退出登录：清空 Session 后回到登录页。
     @GetMapping("/admin/logout")
     public String logout(HttpSession session) {
         session.invalidate();

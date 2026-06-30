@@ -30,6 +30,7 @@ public class AdminHouseController {
         this.demoDataService = demoDataService;
     }
 
+    // 后台表单：新增房源，自动复用/创建城市区县，并根据总价和面积计算单价。
     @PostMapping("/admin/houses/")
     public String createHouse(
             @RequestParam String title,
@@ -85,6 +86,7 @@ public class AdminHouseController {
         return "redirect:/admin/";
     }
 
+    // 后台表单：删除指定房源，删除后回到管理后台并显示操作结果。
     @PostMapping("/admin/houses/{houseId}/delete")
     public String deleteHouse(@PathVariable Long houseId, RedirectAttributes redirectAttributes) {
         if (!houseRepository.existsById(houseId)) {
@@ -96,6 +98,7 @@ public class AdminHouseController {
         return "redirect:/admin/";
     }
 
+    // 后台表单：创建演示采集任务，导入内置示例数据，不访问真实网站。
     @PostMapping("/admin/crawl-tasks/")
     public String createCrawlTask(
             @RequestParam(name = "target_city", defaultValue = "济南") String targetCity,
